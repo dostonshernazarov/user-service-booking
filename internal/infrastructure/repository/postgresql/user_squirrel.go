@@ -76,10 +76,43 @@ func (p userRepo) Get(ctx context.Context, id string) (*entity.User, error) {
 	return &user, nil
 }
 
-func (p userRepo) List(ctx context.Context, limit, offset int64) ([]*entity.User, error) {
-	var (
-		users []*entity.User
-	)
+func (p userRepo) ListUsers(ctx context.Context, limit, offset int64) ([]*entity.User, error) {
+	var users []*entity.User
+
+	queryBuilder := p.userSelectQueryPrefix()
+
+	if limit != 0 {
+		queryBuilder = queryBuilder.Limit(uint64(limit)).Offset(uint64(offset)).Where(p.db.Sq.Equal("deleted_at", nil))
+	}
+
+	query, args, err := queryBuilder.ToSql()
+	if err != nil {
+		return nil, p.db.ErrSQLBuild(err, fmt.Sprintf("%s %s", p.tableName, "list"))
+	}
+
+	rows, err := p.db.Query(ctx, query, args...)
+	if err != nil {
+		return nil, p.db.Error(err)
+	}
+	defer rows.Close()
+	users = make([]*entity.User, 0)
+	for rows.Next() {
+		var user entity.User
+		if err = rows.Scan(
+			&user.Id,
+			&user.FullName,
+		); err != nil {
+			return nil, p.db.Error(err)
+		}
+		users = append(users, &user)
+	}
+
+	return users, nil
+}
+
+func (p userRepo) GetAllUsers(ctx context.Context, limit, offset int64) ([]*entity.User, error) {
+	var users []*entity.User
+
 	queryBuilder := p.userSelectQueryPrefix()
 
 	if limit != 0 {
@@ -136,10 +169,17 @@ func (p userRepo) Update(ctx context.Context, user *entity.User) (*entity.User, 
 	return user, nil
 }
 
-func (p userRepo) HardDelete(ctx context.Context, id string) error {
-	sqlStr, args, err := p.db.Sq.Builder.Delete(p.tableName).Where(p.db.Sq.Equal("id", id)).ToSql()
+func (p userRepo) SoftDelete(ctx context.Context, id string) error {
+	clauses := map[string]any{
+		"deleted_at":	time.Now().UTC(),
+	}
+	sqlStr, args, err := p.db.Sq.Builder.
+		Update(p.tableName).
+		SetMap(clauses).
+		Where(p.db.Sq.Equal("id", id)).
+		ToSql()
 	if err != nil {
-		return p.db.ErrSQLBuild(err, p.tableName+" hard_delete")
+		return p.db.ErrSQLBuild(err, p.tableName+" soft_delete")
 	}
 
 	commandTag, err := p.db.Exec(ctx, sqlStr, args...)
@@ -154,17 +194,10 @@ func (p userRepo) HardDelete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (p userRepo) SoftDelete(ctx context.Context, id string) error {
-	clauses := map[string]any{
-		"deleted_at":	time.Now().UTC(),
-	}
-	sqlStr, args, err := p.db.Sq.Builder.
-		Update(p.tableName).
-		SetMap(clauses).
-		Where(p.db.Sq.Equal("id", id)).
-		ToSql()
+func (p userRepo) HardDelete(ctx context.Context, id string) error {
+	sqlStr, args, err := p.db.Sq.Builder.Delete(p.tableName).Where(p.db.Sq.Equal("id", id)).ToSql()
 	if err != nil {
-		return p.db.ErrSQLBuild(err, p.tableName+" soft_delete")
+		return p.db.ErrSQLBuild(err, p.tableName+" hard_delete")
 	}
 
 	commandTag, err := p.db.Exec(ctx, sqlStr, args...)
