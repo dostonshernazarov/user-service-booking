@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS users (
     full_name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
-    date_of_birth VARCHAR(255),
+    date_of_birth DATE,
     profile_img VARCHAR(255),
     card VARCHAR(255),
     gender VARCHAR(255),
