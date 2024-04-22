@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	userTableName      = "user"
+	userTableName      = "users"
 	userServiceName    = "userService"
 	userSpanRepoPrefix = "userRepo"
 )
@@ -38,9 +38,6 @@ func (p *userRepo) userSelectQueryPrefix() squirrel.SelectBuilder {
 }
 
 func (p userRepo) Create(ctx context.Context, user *entity.User) (*entity.User, error) {
-	// ctx, span := otlp.Start(ctx, userServiceName, userSpanRepoPrefix+"Create")
-	// defer span.End()
-
 	data := map[string]any{
 		"id":			user.Id,
 		"full_name":	user.FullName,
@@ -59,12 +56,7 @@ func (p userRepo) Create(ctx context.Context, user *entity.User) (*entity.User, 
 }
 
 func (p userRepo) Get(ctx context.Context, id string) (*entity.User, error) {
-	var (
-		user entity.User
-	)
-
-	// ctx, span := otlp.Start(ctx, userServiceName, userSpanRepoPrefix+"Get")
-	// defer span.End()
+	var user entity.User
 
 	queryBuilder := p.userSelectQueryPrefix()
 
@@ -126,7 +118,7 @@ func (p userRepo) Update(ctx context.Context, user *entity.User) (*entity.User, 
 	sqlStr, args, err := p.db.Sq.Builder.
 		Update(p.tableName).
 		SetMap(clauses).
-		Where(p.db.Sq.Equal("id", user.Id)).
+		Where(p.db.Sq.Equal("id", user.Id), p.db.Sq.Equal("deleted_at", nil)).
 		ToSql()
 	if err != nil {
 		return user, p.db.ErrSQLBuild(err, p.tableName+" update")
@@ -147,7 +139,7 @@ func (p userRepo) Update(ctx context.Context, user *entity.User) (*entity.User, 
 func (p userRepo) HardDelete(ctx context.Context, id string) error {
 	sqlStr, args, err := p.db.Sq.Builder.Delete(p.tableName).Where(p.db.Sq.Equal("id", id)).ToSql()
 	if err != nil {
-		return p.db.ErrSQLBuild(err, p.tableName+" delete")
+		return p.db.ErrSQLBuild(err, p.tableName+" hard_delete")
 	}
 
 	commandTag, err := p.db.Exec(ctx, sqlStr, args...)
@@ -172,7 +164,7 @@ func (p userRepo) SoftDelete(ctx context.Context, id string) error {
 		Where(p.db.Sq.Equal("id", id)).
 		ToSql()
 	if err != nil {
-		return p.db.ErrSQLBuild(err, p.tableName+" delete")
+		return p.db.ErrSQLBuild(err, p.tableName+" soft_delete")
 	}
 
 	commandTag, err := p.db.Exec(ctx, sqlStr, args...)
