@@ -1,0 +1,4 @@
+2024-04-22T18:46:41.433+0500	INFO	app/app.go:101	gRPC Server Listening	{"url": ":50025"}
+2024-04-22T18:46:57.508+0500	INFO	zap/options.go:212	finished unary call with code OK	{"grpc.start_time": "2024-04-22T18:46:57+05:00", "system": "grpc", "span.kind": "server", "grpc.service": "user.UserService", "grpc.method": "Create", "peer.address": "127.0.0.1:35316", "grpc.code": "OK", "grpc.time_ms": 0.044}
+2024-04-22T18:47:11.741+0500	INFO	zap/options.go:212	finished unary call with code OK	{"grpc.start_time": "2024-04-22T18:47:11+05:00", "system": "grpc", "span.kind": "server", "grpc.service": "user.UserService", "grpc.method": "Get", "peer.address": "127.0.0.1:47530", "grpc.code": "OK", "grpc.time_ms": 0.035}
+2024-04-22T19:00:13.433+0500	INFO	app/main.go:36	User service stops !

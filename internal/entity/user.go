@@ -14,6 +14,7 @@ type User struct {
 	PhoneNumber string
 	Role string
 	EstablishmentId string
+	RefreshToken string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt time.Time

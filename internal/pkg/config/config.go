@@ -48,7 +48,7 @@ func New() *Config {
 	config.DB.User = getEnv("POSTGRES_USER", "postgres")
 	config.DB.Password = getEnv("POSTGRES_PASSWORD", "qwerty")
 	config.DB.SslMode = getEnv("POSTGRES_SSLMODE", "disable")
-	config.DB.Name = getEnv("POSTGRES_DATABASE", "regauth")
+	config.DB.Name = getEnv("POSTGRES_DATABASE", "usersdb")
 
 	// kafka configuration
 	config.Kafka.Address = strings.Split(getEnv("KAFKA_ADDRESS", "localhost:29092"), ",")

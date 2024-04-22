@@ -10,8 +10,41 @@ CREATE TABLE IF NOT EXISTS users (
     phone_number VARCHAR(255),
     role VARCHAR(255),
     establishment_id UUID,
+    refresh_token VARCHAR(255),
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP,
     deleted_at TIMESTAMP,
     PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS userHotelBooking (
+    id UUID NOT NULL,
+    user_id UUID NOT NULL,
+    room_id UUID NOT NULL,
+    will_arrive TIMESTAMP,
+    will_leave TIMESTAMP,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP,
+    PRIMARY KEY (id),
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (room_id) REFERENCES establishments(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS userRestaurantBooking (
+    id UUID NOT NULL,
+    user_id UUID NOT NULL,
+    table_id UUID NOT NULL,
+    will_arrive TIMESTAMP,
+    will_leave TIMESTAMP,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP,
+    PRIMARY KEY (id),
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (table_id) REFERENCES establishments(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
 );

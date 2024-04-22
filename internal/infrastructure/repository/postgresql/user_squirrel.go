@@ -29,27 +29,55 @@ func NewUserRepo(db *postgres.PostgresDB) *userRepo {
 }
 
 func (p *userRepo) userSelectQueryPrefix() squirrel.SelectBuilder {
-	return p.db.Sq.Builder.
-		Select(
-			"id",
-			"first_name",
-			"last_name",
-		).From(p.tableName)
+	return p.db.Sq.Builder.Select(
+		"id",
+		"full_name",
+		"email",
+		"password",
+		"date_of_birth",
+		"profile_img",
+		"card",
+		"gender",
+		"phone_number",
+		"role",
+		"establishment_id",
+		"refresh_token",
+		"created_at",
+		"updated_at",
+		"deleted_at",
+	).From(p.tableName)
 }
 
 func (p userRepo) Create(ctx context.Context, user *entity.User) (*entity.User, error) {
-	data := map[string]any{
-		"id":			user.Id,
-		"full_name":	user.FullName,
+	DOB, err := time.Parse("02/01/2006", user.DateOfBirth)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse date of birth: %v", err)
+	}
+	data := map[string]interface{}{
+		"id":              user.Id,
+		"full_name":       user.FullName,
+		"email":           user.Email,
+		"password":        user.Password,
+		"date_of_birth":   DOB,
+		"profile_img":     user.ProfileImg,
+		"card":            user.Card,
+		"gender":          user.Gender,
+		"phone_number":    user.PhoneNumber,
+		"role":            user.Role,
+		"establishment_id":user.EstablishmentId,
+		"refresh_token":   user.RefreshToken,
+		"created_at":      user.CreatedAt,
+		"updated_at":      user.UpdatedAt,
+		"deleted_at":      user.DeletedAt,
 	}
 	query, args, err := p.db.Sq.Builder.Insert(p.tableName).SetMap(data).ToSql()
 	if err != nil {
-		return user, p.db.ErrSQLBuild(err, fmt.Sprintf("%s %s", p.tableName, "create"))
+		return user, fmt.Errorf("failed to build SQL query for creating user: %v", err)
 	}
 
 	_, err = p.db.Exec(ctx, query, args...)
 	if err != nil {
-		return user, p.db.Error(err)
+		return user, fmt.Errorf("failed to execute SQL query for creating user: %v", err)
 	}
 
 	return user, nil
@@ -64,13 +92,26 @@ func (p userRepo) Get(ctx context.Context, id string) (*entity.User, error) {
 
 	query, args, err := queryBuilder.ToSql()
 	if err != nil {
-		return nil, p.db.ErrSQLBuild(err, fmt.Sprintf("%s %s", p.tableName, "get"))
+		return nil, fmt.Errorf("failed to build SQL query for getting user: %v", err)
 	}
 	if err = p.db.QueryRow(ctx, query, args...).Scan(
 		&user.Id,
 		&user.FullName,
+		&user.Email,
+		&user.Password,
+		&user.DateOfBirth,
+		&user.ProfileImg,
+		&user.Card,
+		&user.Gender,
+		&user.PhoneNumber,
+		&user.Role,
+		&user.EstablishmentId,
+		&user.RefreshToken,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+		&user.DeletedAt,
 	); err != nil {
-		return nil, p.db.Error(err)
+		return nil, fmt.Errorf("failed to get user: %v", err)
 	}
 
 	return &user, nil
@@ -87,12 +128,12 @@ func (p userRepo) ListUsers(ctx context.Context, limit, offset int64) ([]*entity
 
 	query, args, err := queryBuilder.ToSql()
 	if err != nil {
-		return nil, p.db.ErrSQLBuild(err, fmt.Sprintf("%s %s", p.tableName, "list"))
+		return nil, fmt.Errorf("failed to build SQL query for listing users: %v", err)
 	}
 
 	rows, err := p.db.Query(ctx, query, args...)
 	if err != nil {
-		return nil, p.db.Error(err)
+		return nil, fmt.Errorf("failed to execute SQL query for listing users: %v", err)
 	}
 	defer rows.Close()
 	users = make([]*entity.User, 0)
@@ -101,8 +142,21 @@ func (p userRepo) ListUsers(ctx context.Context, limit, offset int64) ([]*entity
 		if err = rows.Scan(
 			&user.Id,
 			&user.FullName,
+			&user.Email,
+			&user.Password,
+			&user.DateOfBirth,
+			&user.ProfileImg,
+			&user.Card,
+			&user.Gender,
+			&user.PhoneNumber,
+			&user.Role,
+			&user.EstablishmentId,
+			&user.RefreshToken,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+			&user.DeletedAt,
 		); err != nil {
-			return nil, p.db.Error(err)
+			return nil, fmt.Errorf("failed to scan row while listing users: %v", err)
 		}
 		users = append(users, &user)
 	}
@@ -121,12 +175,12 @@ func (p userRepo) GetAllUsers(ctx context.Context, limit, offset int64) ([]*enti
 
 	query, args, err := queryBuilder.ToSql()
 	if err != nil {
-		return nil, p.db.ErrSQLBuild(err, fmt.Sprintf("%s %s", p.tableName, "list"))
+		return nil, fmt.Errorf("failed to build SQL query for listing all users: %v", err)
 	}
 
 	rows, err := p.db.Query(ctx, query, args...)
 	if err != nil {
-		return nil, p.db.Error(err)
+		return nil, fmt.Errorf("failed to execute SQL query for listing all users: %v", err)
 	}
 	defer rows.Close()
 	users = make([]*entity.User, 0)
@@ -135,8 +189,21 @@ func (p userRepo) GetAllUsers(ctx context.Context, limit, offset int64) ([]*enti
 		if err = rows.Scan(
 			&user.Id,
 			&user.FullName,
+			&user.Email,
+			&user.Password,
+			&user.DateOfBirth,
+			&user.ProfileImg,
+			&user.Card,
+			&user.Gender,
+			&user.PhoneNumber,
+			&user.Role,
+			&user.EstablishmentId,
+			&user.RefreshToken,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+			&user.DeletedAt,
 		); err != nil {
-			return nil, p.db.Error(err)
+			return nil, fmt.Errorf("failed to scan row while listing all users: %v", err)
 		}
 		users = append(users, &user)
 	}
@@ -145,50 +212,59 @@ func (p userRepo) GetAllUsers(ctx context.Context, limit, offset int64) ([]*enti
 }
 
 func (p userRepo) Update(ctx context.Context, user *entity.User) (*entity.User, error) {
-	clauses := map[string]any{
-		"full_name":	user.FullName,
+	DOB, err := time.Parse("02/01/2006", user.DateOfBirth)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse date of birth: %v", err)
 	}
-	sqlStr, args, err := p.db.Sq.Builder.
-		Update(p.tableName).
+	clauses := map[string]interface{}{
+		"full_name":       user.FullName,
+		"email":           user.Email,
+		"password":        user.Password,
+		"date_of_birth":   DOB,
+		"profile_img":     user.ProfileImg,
+		"card":            user.Card,
+		"gender":          user.Gender,
+		"phone_number":    user.PhoneNumber,
+	}
+	sqlStr, args, err := p.db.Sq.Builder.Update(p.tableName).
 		SetMap(clauses).
 		Where(p.db.Sq.Equal("id", user.Id), p.db.Sq.Equal("deleted_at", nil)).
 		ToSql()
 	if err != nil {
-		return user, p.db.ErrSQLBuild(err, p.tableName+" update")
+		return user, fmt.Errorf("failed to build SQL query for updating user: %v", err)
 	}
 
 	commandTag, err := p.db.Exec(ctx, sqlStr, args...)
 	if err != nil {
-		return user, p.db.Error(err)
+		return user, fmt.Errorf("failed to execute SQL query for updating user: %v", err)
 	}
 
 	if commandTag.RowsAffected() == 0 {
-		return user, p.db.Error(fmt.Errorf("no sql rows"))
+		return user, fmt.Errorf("no rows affected while updating user")
 	}
 
 	return user, nil
 }
 
 func (p userRepo) SoftDelete(ctx context.Context, id string) error {
-	clauses := map[string]any{
-		"deleted_at":	time.Now().UTC(),
+	clauses := map[string]interface{}{
+		"deleted_at": time.Now().UTC(),
 	}
-	sqlStr, args, err := p.db.Sq.Builder.
-		Update(p.tableName).
+	sqlStr, args, err := p.db.Sq.Builder.Update(p.tableName).
 		SetMap(clauses).
 		Where(p.db.Sq.Equal("id", id)).
 		ToSql()
 	if err != nil {
-		return p.db.ErrSQLBuild(err, p.tableName+" soft_delete")
+		return fmt.Errorf("failed to build SQL query for soft deleting user: %v", err)
 	}
 
 	commandTag, err := p.db.Exec(ctx, sqlStr, args...)
 	if err != nil {
-		return p.db.Error(err)
+		return fmt.Errorf("failed to execute SQL query for soft deleting user: %v", err)
 	}
 
 	if commandTag.RowsAffected() == 0 {
-		return p.db.Error(fmt.Errorf("no sql rows"))
+		return fmt.Errorf("no rows affected while soft deleting user")
 	}
 
 	return nil
@@ -197,16 +273,16 @@ func (p userRepo) SoftDelete(ctx context.Context, id string) error {
 func (p userRepo) HardDelete(ctx context.Context, id string) error {
 	sqlStr, args, err := p.db.Sq.Builder.Delete(p.tableName).Where(p.db.Sq.Equal("id", id)).ToSql()
 	if err != nil {
-		return p.db.ErrSQLBuild(err, p.tableName+" hard_delete")
+		return fmt.Errorf("failed to build SQL query for hard deleting user: %v", err)
 	}
 
 	commandTag, err := p.db.Exec(ctx, sqlStr, args...)
 	if err != nil {
-		return p.db.Error(err)
+		return fmt.Errorf("failed to execute SQL query for hard deleting user: %v", err)
 	}
 
 	if commandTag.RowsAffected() == 0 {
-		return p.db.Error(fmt.Errorf("no sql rows"))
+		return fmt.Errorf("no rows affected while hard deleting user")
 	}
 
 	return nil
