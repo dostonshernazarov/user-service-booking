@@ -14,7 +14,7 @@ import (
 
 type User interface {
 	Create(ctx context.Context, user *entity.User) (*entity.User, error)
-	Get(ctx context.Context, id string) (*entity.User, error)
+	Get(ctx context.Context, params map[string]string) (*entity.User, error)
 	ListUsers(ctx context.Context, limit, offset int64) ([]*entity.User, error)
 	GetAllUsers(ctx context.Context, limit, offset int64) ([]*entity.User, error)
 	Update(ctx context.Context, user *entity.User) (*entity.User, error)
@@ -44,11 +44,11 @@ func (u UserService) Create(ctx context.Context, user *entity.User) (*entity.Use
 	return u.repo.Create(ctx, user)
 }
 
-func (u UserService) Get(ctx context.Context, id string) (*entity.User, error) {
+func (u UserService) Get(ctx context.Context, params map[string]string) (*entity.User, error) {
 	ctx, cancel := context.WithTimeout(ctx, u.ctxTimeout)
 	defer cancel()
 
-	return u.repo.Get(ctx, id)
+	return u.repo.Get(ctx, params)
 }
 
 func (u UserService) ListUsers(ctx context.Context, limit, offset int64) ([]*entity.User, error) {

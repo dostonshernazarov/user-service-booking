@@ -25,13 +25,13 @@ CREATE TABLE IF NOT EXISTS userHotelBooking (
     will_leave TIMESTAMP,
     number_of_people INTEGER,
     is_canceled BOOLEAN DEFAULT FALSE,
-    reason VARCHAR(255) IF is_canceled IS TRUE,
+    reason VARCHAR(255),
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP,
     deleted_at TIMESTAMP,
     PRIMARY KEY (id),
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (room_id) REFERENCES establishments(id)
+    FOREIGN KEY (user_id)
+    REFERENCES users(id)
     ON DELETE CASCADE
     ON UPDATE CASCADE
 );
@@ -41,12 +41,36 @@ CREATE TABLE IF NOT EXISTS userRestaurantBooking (
     user_id UUID NOT NULL,
     table_id UUID NOT NULL,
     will_arrive TIMESTAMP,
+    will_leave TIMESTAMP,
+    number_of_people INTEGER,
+    is_canceled BOOLEAN DEFAULT FALSE,
+    reason VARCHAR(255),
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP,
     deleted_at TIMESTAMP,
     PRIMARY KEY (id),
-    FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (table_id) REFERENCES establishments(id)
+    FOREIGN KEY (user_id)
+    REFERENCES users(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS userAttractionBooking (
+    id UUID NOT NULL,
+    user_id UUID NOT NULL,
+    attraction_id UUID NOT NULL,
+    ticket BOOLEAN DEFAULT FALSE,
+    will_arrive TIMESTAMP,
+    will_leave TIMESTAMP,
+    number_of_people INTEGER,
+    is_canceled BOOLEAN DEFAULT FALSE,
+    reason VARCHAR(255),
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP,
+    PRIMARY KEY (id),
+    FOREIGN KEY (user_id)
+    REFERENCES users(id)
     ON DELETE CASCADE
     ON UPDATE CASCADE
 );
