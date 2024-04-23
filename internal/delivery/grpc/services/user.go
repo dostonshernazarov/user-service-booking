@@ -30,8 +30,32 @@ func (s userRPC) Create(ctx context.Context, req *pb.User) (*pb.User, error) {
     }, nil
 }
 
-func (s userRPC) Get(ctx context.Context, id *pb.IdReq) (*pb.User, error) {
-	return &pb.User{Id: id.Id}, nil
+func (s userRPC) Get(ctx context.Context, filter *pb.Filter) (*pb.GetUser, error) {
+	filterUser, err := s.userUsecase.Get(ctx, filter.Filter)
+	if err!= nil {
+        return nil, err
+    }
+
+	resp := &pb.GetUser{
+		User: &pb.User{
+			Id: filterUser.Id,
+			FullName: filterUser.FullName,
+			Email: filterUser.Email,
+			Password: filterUser.Password,
+			DateOfBirth: filterUser.DateOfBirth,
+			ProfileImg: filterUser.ProfileImg,
+			Card: filterUser.Card,
+			Gender: filterUser.Gender,
+			PhoneNumber: filterUser.PhoneNumber,
+			Role: filterUser.Role,
+			EstablishmentId: filterUser.EstablishmentId,
+			RefreshToken: filterUser.RefreshToken,
+			CreatedAt: filterUser.CreatedAt.Format("2006-01-02T15:04:05Z"),
+			UpdatedAt: filterUser.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		},
+	}
+
+	return resp, nil
 }
 
 func (s userRPC) ListUsers(ctx context.Context, req *pb.ListUsersReq) (*pb.ListUsersRes, error) {
@@ -49,10 +73,10 @@ func (s userRPC) Update(ctx context.Context, req *pb.User) (*pb.User, error) {
     }, nil
 }
 
-func (s userRPC) SoftDelete(ctx context.Context, req *pb.IdReq) (*pb.DelRes, error) {
+func (s userRPC) SoftDelete(ctx context.Context, req *pb.Filter) (*pb.DelRes, error) {
     return &pb.DelRes{}, nil
 }
 
-func (s userRPC) HardDelete(ctx context.Context, req *pb.IdReq) (*pb.DelRes, error) {
+func (s userRPC) HardDelete(ctx context.Context, req *pb.Filter) (*pb.DelRes, error) {
     return &pb.DelRes{}, nil
 }

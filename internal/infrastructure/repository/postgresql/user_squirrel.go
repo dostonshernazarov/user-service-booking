@@ -83,12 +83,16 @@ func (p userRepo) Create(ctx context.Context, user *entity.User) (*entity.User, 
 	return user, nil
 }
 
-func (p userRepo) Get(ctx context.Context, id string) (*entity.User, error) {
+func (p userRepo) Get(ctx context.Context, params map[string]string) (*entity.User, error) {
 	var user entity.User
 
 	queryBuilder := p.userSelectQueryPrefix()
 
-	queryBuilder = queryBuilder.Where(p.db.Sq.Equal("id", id))
+	for key, value := range params {
+		if key == "id" {
+			queryBuilder = queryBuilder.Where(p.db.Sq.Equal(key, value))
+		}
+	}
 
 	query, args, err := queryBuilder.ToSql()
 	if err != nil {
