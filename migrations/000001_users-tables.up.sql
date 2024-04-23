@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS userRestaurantBooking (
     ON UPDATE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS userAttractionBooking {
+CREATE TABLE IF NOT EXISTS userAttractionBooking (
     id UUID NOT NULL,
     user_id UUID NOT NULL,
     attraction_id UUID NOT NULL,
@@ -73,4 +73,4 @@ CREATE TABLE IF NOT EXISTS userAttractionBooking {
     REFERENCES users(id)
     ON DELETE CASCADE
     ON UPDATE CASCADE
-}
+);

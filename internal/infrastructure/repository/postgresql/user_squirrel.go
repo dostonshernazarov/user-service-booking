@@ -34,7 +34,7 @@ func (p *userRepo) userSelectQueryPrefix() squirrel.SelectBuilder {
 		"full_name",
 		"email",
 		"password",
-		"date_of_birth",
+		"TO_CHAR(date_of_birth, 'YYYY-MM-DD') AS date_of_birth",
 		"profile_img",
 		"card",
 		"gender",
@@ -49,7 +49,7 @@ func (p *userRepo) userSelectQueryPrefix() squirrel.SelectBuilder {
 }
 
 func (p userRepo) Create(ctx context.Context, user *entity.User) (*entity.User, error) {
-	DOB, err := time.Parse("02/01/2006", user.DateOfBirth)
+	DOB, err := time.Parse("2006-01-02", user.DateOfBirth)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse date of birth: %v", err)
 	}
@@ -127,8 +127,10 @@ func (p userRepo) ListUsers(ctx context.Context, limit, offset int64) ([]*entity
 	queryBuilder := p.userSelectQueryPrefix()
 
 	if limit != 0 {
-		queryBuilder = queryBuilder.Limit(uint64(limit)).Offset(uint64(offset)).Where(p.db.Sq.Equal("deleted_at", nil))
+		queryBuilder = queryBuilder.Limit(uint64(limit)).Offset(uint64(offset))
 	}
+
+    queryBuilder = queryBuilder.Where("deleted_at IS NULL")
 
 	query, args, err := queryBuilder.ToSql()
 	if err != nil {
@@ -216,7 +218,7 @@ func (p userRepo) GetAllUsers(ctx context.Context, limit, offset int64) ([]*enti
 }
 
 func (p userRepo) Update(ctx context.Context, user *entity.User) (*entity.User, error) {
-	DOB, err := time.Parse("02/01/2006", user.DateOfBirth)
+	DOB, err := time.Parse("2006-01-02", user.DateOfBirth)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse date of birth: %v", err)
 	}
@@ -252,12 +254,13 @@ func (p userRepo) Update(ctx context.Context, user *entity.User) (*entity.User, 
 
 func (p userRepo) SoftDelete(ctx context.Context, id string) error {
 	clauses := map[string]interface{}{
-		"deleted_at": time.Now().UTC(),
+		"deleted_at": time.Now().Format("2006-01-02T15:04:05"),
 	}
-	sqlStr, args, err := p.db.Sq.Builder.Update(p.tableName).
-		SetMap(clauses).
-		Where(p.db.Sq.Equal("id", id)).
-		ToSql()
+	sqlBuilder := p.db.Sq.Builder.Update(p.tableName).
+        SetMap(clauses).
+        Where(p.db.Sq.Equal("id", id))
+
+	sqlStr, args, err := sqlBuilder.ToSql()
 	if err != nil {
 		return fmt.Errorf("failed to build SQL query for soft deleting user: %v", err)
 	}
