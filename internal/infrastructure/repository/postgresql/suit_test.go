@@ -33,7 +33,6 @@ func TestUserPostgres(t *testing.T) {
         Gender:       "Male",
         PhoneNumber:  "05555555555",
         Role:         "Test Role",
-        EstablishmentId: uuid.NewString(),
 		RefreshToken: "test.refresh.token",
 		CreatedAt:    time.Now(),
 	}
@@ -49,7 +48,6 @@ func TestUserPostgres(t *testing.T) {
 	userMap["gender"] = user.Gender
 	userMap["phone_number"] = user.PhoneNumber
 	userMap["role"] = user.Role
-	userMap["establishment_id"] = user.EstablishmentId
 	userMap["refresh_token"] = user.RefreshToken
 	userMap["created_at"] = user.CreatedAt.Format("2006-01-02T15:04:05")
 
@@ -67,7 +65,6 @@ func TestUserPostgres(t *testing.T) {
 	assert.Equal(t, user.Gender, createdUser.Gender)
 	assert.Equal(t, user.PhoneNumber, createdUser.PhoneNumber)
 	assert.Equal(t, user.Role, createdUser.Role)
-	assert.Equal(t, user.EstablishmentId, createdUser.EstablishmentId)
 	assert.Equal(t, user.RefreshToken, createdUser.RefreshToken)
 	assert.Equal(t, user.CreatedAt, createdUser.CreatedAt)
 
@@ -81,7 +78,6 @@ func TestUserPostgres(t *testing.T) {
 	user.Gender = "Test Gender"
 	user.PhoneNumber = "Test PhoneNumber"
 	user.Role = "Test Role"
-	user.EstablishmentId = userMap["establishment_id"]
 	user.RefreshToken = "test.refresh.token"
 	user.CreatedAt = time.Now()
 	user.UpdatedAt = time.Now()
@@ -97,7 +93,6 @@ func TestUserPostgres(t *testing.T) {
 	assert.Equal(t, user.Gender, updUser.Gender)
 	assert.Equal(t, user.PhoneNumber, updUser.PhoneNumber)
 	assert.Equal(t, user.Role, updUser.Role)
-	assert.Equal(t, user.EstablishmentId, updUser.EstablishmentId)
 	assert.Equal(t, user.RefreshToken, updUser.RefreshToken)
 	assert.Equal(t, user.CreatedAt, updUser.CreatedAt)
 	assert.Equal(t, user.UpdatedAt, updUser.UpdatedAt)
@@ -115,7 +110,6 @@ func TestUserPostgres(t *testing.T) {
 	assert.Equal(t, user.Gender, getUser.Gender)
 	assert.Equal(t, user.PhoneNumber, getUser.PhoneNumber)
 	assert.Equal(t, user.Role, getUser.Role)
-	assert.Equal(t, user.EstablishmentId, getUser.EstablishmentId)
 	assert.Equal(t, user.RefreshToken, getUser.RefreshToken)
 
 	// Test Method ListUsers

@@ -36,7 +36,6 @@ func (s userRPC) Create(ctx context.Context, req *pb.User) (*pb.User, error) {
 		Gender:         req.Gender,
 		PhoneNumber:    req.PhoneNumber,
 		Role:           req.Role,
-		EstablishmentId:req.EstablishmentId,
 		RefreshToken:   req.RefreshToken,
 	})
 	if err != nil {
@@ -53,7 +52,6 @@ func (s userRPC) Create(ctx context.Context, req *pb.User) (*pb.User, error) {
 		Gender:         createdUser.Gender,
 		PhoneNumber:    createdUser.PhoneNumber,
 		Role:           createdUser.Role,
-		EstablishmentId:createdUser.EstablishmentId,
 		RefreshToken:   createdUser.RefreshToken,
     }, nil
 }
@@ -76,7 +74,6 @@ func (s userRPC) Get(ctx context.Context, filter *pb.Filter) (*pb.GetUser, error
 			Gender:			filterUser.Gender,
 			PhoneNumber:	filterUser.PhoneNumber,
 			Role:			filterUser.Role,
-			EstablishmentId:filterUser.EstablishmentId,
 			RefreshToken:	filterUser.RefreshToken,
 			CreatedAt:		filterUser.CreatedAt.Format("2006-01-02T15:04:05Z"),
 			UpdatedAt:		filterUser.UpdatedAt.Format("2006-01-02T15:04:05Z"),
@@ -104,7 +101,6 @@ func (s userRPC) ListUsers(ctx context.Context, req *pb.ListUsersReq) (*pb.ListU
             Gender:         user.Gender,
             PhoneNumber:    user.PhoneNumber,
 			Role:           user.Role,
-            EstablishmentId:user.EstablishmentId,
             RefreshToken:   user.RefreshToken,
             CreatedAt:      user.CreatedAt.Format("2006-01-02T15:04:05Z"),
             UpdatedAt:      user.UpdatedAt.Format("2006-01-02T15:04:05Z"),
@@ -133,7 +129,6 @@ func (s userRPC) ListDeletedUsers(ctx context.Context, req *pb.ListUsersReq) (*p
             Gender:         user.Gender,
             PhoneNumber:    user.PhoneNumber,
 			Role:           user.Role,
-            EstablishmentId:user.EstablishmentId,
             RefreshToken:   user.RefreshToken,
             CreatedAt:      user.CreatedAt.Format("2006-01-02T15:04:05Z"),
             UpdatedAt:      user.UpdatedAt.Format("2006-01-02T15:04:05Z"),
@@ -157,7 +152,6 @@ func (s userRPC) Update(ctx context.Context, req *pb.User) (*pb.User, error) {
 		Gender:         req.Gender,
 		PhoneNumber:    req.PhoneNumber,
 		Role:           req.Role,
-		EstablishmentId:req.EstablishmentId,
 		RefreshToken:   req.RefreshToken,
 	})
 	if err != nil {
@@ -174,7 +168,6 @@ func (s userRPC) Update(ctx context.Context, req *pb.User) (*pb.User, error) {
 		Gender:         updatedUser.Gender,
 		PhoneNumber:    updatedUser.PhoneNumber,
 		Role:           updatedUser.Role,
-		EstablishmentId:updatedUser.EstablishmentId,
 		RefreshToken:   updatedUser.RefreshToken,
     }, nil
 }

@@ -13,7 +13,6 @@ type User struct {
 	Gender string
 	PhoneNumber string
 	Role string
-	EstablishmentId string
 	RefreshToken string
 	CreatedAt time.Time
 	UpdatedAt time.Time
