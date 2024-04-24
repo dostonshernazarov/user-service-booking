@@ -40,7 +40,6 @@ func (p *userRepo) userSelectQueryPrefix() squirrel.SelectBuilder {
 		"gender",
 		"phone_number",
 		"role",
-		"establishment_id",
 		"refresh_token",
 		"created_at",
 		"updated_at",
