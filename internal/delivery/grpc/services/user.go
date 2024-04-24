@@ -115,8 +115,8 @@ func (s userRPC) ListUsers(ctx context.Context, req *pb.ListUsersReq) (*pb.ListU
 	}, nil
 }
 
-func (s userRPC) GetAllUsers(ctx context.Context, req *pb.ListUsersReq) (*pb.ListUsersRes, error) {
-	gotAllUsers, err := s.userUsecase.GetAllUsers(ctx, int64(req.Limit), int64(req.Offset))
+func (s userRPC) ListDeletedUsers(ctx context.Context, req *pb.ListUsersReq) (*pb.ListUsersRes, error) {
+	gotAllUsers, err := s.userUsecase.ListDeletedUsers(ctx, int64(req.Limit), int64(req.Offset))
 	if err != nil {
 		return nil, err
 	}

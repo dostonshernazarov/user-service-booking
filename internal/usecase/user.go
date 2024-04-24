@@ -16,7 +16,7 @@ type User interface {
 	Create(ctx context.Context, user *entity.User) (*entity.User, error)
 	Get(ctx context.Context, params map[string]string) (*entity.User, error)
 	ListUsers(ctx context.Context, limit, offset int64) ([]*entity.User, error)
-	GetAllUsers(ctx context.Context, limit, offset int64) ([]*entity.User, error)
+	ListDeletedUsers(ctx context.Context, limit, offset int64) ([]*entity.User, error)
 	Update(ctx context.Context, user *entity.User) (*entity.User, error)
 	SoftDelete(ctx context.Context, id string) error
 	HardDelete(ctx context.Context, id string) error
@@ -58,11 +58,11 @@ func (u UserService) ListUsers(ctx context.Context, limit, offset int64) ([]*ent
 	return u.repo.ListUsers(ctx, limit, offset)
 }
 
-func (u UserService) GetAllUsers(ctx context.Context, limit, offset int64) ([]*entity.User, error) {
+func (u UserService) ListDeletedUsers(ctx context.Context, limit, offset int64) ([]*entity.User, error) {
 	ctx, cancel := context.WithTimeout(ctx, u.ctxTimeout)
 	defer cancel()
 
-	return u.repo.GetAllUsers(ctx, limit, offset)
+	return u.repo.ListDeletedUsers(ctx, limit, offset)
 }
 
 func (u UserService) Update(ctx context.Context, user *entity.User) (*entity.User, error) {

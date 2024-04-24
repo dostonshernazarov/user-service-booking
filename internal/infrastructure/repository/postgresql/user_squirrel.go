@@ -44,6 +44,25 @@ func (p *userRepo) userSelectQueryPrefix() squirrel.SelectBuilder {
 		"refresh_token",
 		"created_at",
 		"updated_at",
+	).From(p.tableName)
+}
+
+func (p *userRepo) userSelectQueryPrefixAdmin() squirrel.SelectBuilder {
+	return p.db.Sq.Builder.Select(
+		"id",
+		"full_name",
+		"email",
+		"password",
+		"TO_CHAR(date_of_birth, 'YYYY-MM-DD') AS date_of_birth",
+		"profile_img",
+		"card",
+		"gender",
+		"phone_number",
+		"role",
+		"establishment_id",
+		"refresh_token",
+		"created_at",
+		"updated_at",
 		"deleted_at",
 	).From(p.tableName)
 }
@@ -68,7 +87,6 @@ func (p userRepo) Create(ctx context.Context, user *entity.User) (*entity.User, 
 		"refresh_token":   user.RefreshToken,
 		"created_at":      user.CreatedAt,
 		"updated_at":      user.UpdatedAt,
-		"deleted_at":      user.DeletedAt,
 	}
 	query, args, err := p.db.Sq.Builder.Insert(p.tableName).SetMap(data).ToSql()
 	if err != nil {
@@ -92,6 +110,7 @@ func (p userRepo) Get(ctx context.Context, params map[string]string) (*entity.Us
 		if key == "id" {
 			queryBuilder = queryBuilder.Where(p.db.Sq.Equal(key, value))
 		}
+    	queryBuilder = queryBuilder.Where(p.db.Sq.Equal("deleted_at", nil))
 	}
 
 	query, args, err := queryBuilder.ToSql()
@@ -113,7 +132,6 @@ func (p userRepo) Get(ctx context.Context, params map[string]string) (*entity.Us
 		&user.RefreshToken,
 		&user.CreatedAt,
 		&user.UpdatedAt,
-		&user.DeletedAt,
 	); err != nil {
 		return nil, fmt.Errorf("failed to get user: %v", err)
 	}
@@ -130,7 +148,7 @@ func (p userRepo) ListUsers(ctx context.Context, limit, offset int64) ([]*entity
 		queryBuilder = queryBuilder.Limit(uint64(limit)).Offset(uint64(offset))
 	}
 
-    queryBuilder = queryBuilder.Where("deleted_at IS NULL")
+    queryBuilder = queryBuilder.Where(p.db.Sq.Equal("deleted_at", nil))
 
 	query, args, err := queryBuilder.ToSql()
 	if err != nil {
@@ -160,7 +178,6 @@ func (p userRepo) ListUsers(ctx context.Context, limit, offset int64) ([]*entity
 			&user.RefreshToken,
 			&user.CreatedAt,
 			&user.UpdatedAt,
-			&user.DeletedAt,
 		); err != nil {
 			return nil, fmt.Errorf("failed to scan row while listing users: %v", err)
 		}
@@ -170,15 +187,16 @@ func (p userRepo) ListUsers(ctx context.Context, limit, offset int64) ([]*entity
 	return users, nil
 }
 
-func (p userRepo) GetAllUsers(ctx context.Context, limit, offset int64) ([]*entity.User, error) {
+func (p userRepo) ListDeletedUsers(ctx context.Context, limit, offset int64) ([]*entity.User, error) {
 	var users []*entity.User
 
-	queryBuilder := p.userSelectQueryPrefix()
+	queryBuilder := p.userSelectQueryPrefixAdmin()
 
 	if limit != 0 {
 		queryBuilder = queryBuilder.Limit(uint64(limit)).Offset(uint64(offset))
 	}
 
+    queryBuilder = queryBuilder.Where(p.db.Sq.NotEqual("deleted_at", nil))
 	query, args, err := queryBuilder.ToSql()
 	if err != nil {
 		return nil, fmt.Errorf("failed to build SQL query for listing all users: %v", err)
@@ -189,7 +207,6 @@ func (p userRepo) GetAllUsers(ctx context.Context, limit, offset int64) ([]*enti
 		return nil, fmt.Errorf("failed to execute SQL query for listing all users: %v", err)
 	}
 	defer rows.Close()
-	users = make([]*entity.User, 0)
 	for rows.Next() {
 		var user entity.User
 		if err = rows.Scan(
