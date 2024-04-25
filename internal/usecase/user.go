@@ -20,7 +20,9 @@ type User interface {
 	Update(ctx context.Context, user *entity.User) (*entity.User, error)
 	SoftDelete(ctx context.Context, id string) error
 	HardDelete(ctx context.Context, id string) error
-	UserEstablishment(ctx context.Context, id, user_id, establishment_id string) (string, error)
+	UserEstablishmentCreate(ctx context.Context, id, user_id, establishment_id string) (string, string, string, error)
+	UserEstablishmentGet(ctx context.Context, id string) (string, *entity.User, string, error)
+	UserEstablishmentDelete(ctx context.Context, id string) error
 }
 
 type UserService struct {
@@ -94,9 +96,23 @@ func (u UserService) HardDelete(ctx context.Context, id string) error {
     return u.repo.HardDelete(ctx, id)
 }
 
-func (u UserService) UserEstablishment(ctx context.Context, id, user_id, establishment_id string) (string, error) {
+func (u UserService) UserEstablishmentCreate(ctx context.Context, id, user_id, establishment_id string) (string, string, string, error) {
 	ctx, cancel := context.WithTimeout(ctx, u.ctxTimeout)
     defer cancel()
 
-    return u.repo.UserEstablishment(ctx, id, user_id, establishment_id)
+    return u.repo.UserEstablishmentCreate(ctx, id, user_id, establishment_id)
+}
+
+func (u UserService) UserEstablishmentGet(ctx context.Context, id string) (string, *entity.User, string, error) {
+	ctx, cancel := context.WithTimeout(ctx, u.ctxTimeout)
+    defer cancel()
+
+    return u.repo.UserEstablishmentGet(ctx, id)
+}
+
+func (u UserService) UserEstablishmentDelete(ctx context.Context, id string) error {
+	ctx, cancel := context.WithTimeout(ctx, u.ctxTimeout)
+    defer cancel()
+
+    return u.repo.UserEstablishmentDelete(ctx, id)
 }
