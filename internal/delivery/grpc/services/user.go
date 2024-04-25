@@ -36,7 +36,6 @@ func (s userRPC) Create(ctx context.Context, req *pb.User) (*pb.User, error) {
 		Gender:         req.Gender,
 		PhoneNumber:    req.PhoneNumber,
 		Role:           req.Role,
-		EstablishmentId:req.EstablishmentId,
 		RefreshToken:   req.RefreshToken,
 	})
 	if err != nil {
@@ -53,7 +52,6 @@ func (s userRPC) Create(ctx context.Context, req *pb.User) (*pb.User, error) {
 		Gender:         createdUser.Gender,
 		PhoneNumber:    createdUser.PhoneNumber,
 		Role:           createdUser.Role,
-		EstablishmentId:createdUser.EstablishmentId,
 		RefreshToken:   createdUser.RefreshToken,
     }, nil
 }
@@ -76,7 +74,6 @@ func (s userRPC) Get(ctx context.Context, filter *pb.Filter) (*pb.GetUser, error
 			Gender:			filterUser.Gender,
 			PhoneNumber:	filterUser.PhoneNumber,
 			Role:			filterUser.Role,
-			EstablishmentId:filterUser.EstablishmentId,
 			RefreshToken:	filterUser.RefreshToken,
 			CreatedAt:		filterUser.CreatedAt.Format("2006-01-02T15:04:05Z"),
 			UpdatedAt:		filterUser.UpdatedAt.Format("2006-01-02T15:04:05Z"),
@@ -104,7 +101,6 @@ func (s userRPC) ListUsers(ctx context.Context, req *pb.ListUsersReq) (*pb.ListU
             Gender:         user.Gender,
             PhoneNumber:    user.PhoneNumber,
 			Role:           user.Role,
-            EstablishmentId:user.EstablishmentId,
             RefreshToken:   user.RefreshToken,
             CreatedAt:      user.CreatedAt.Format("2006-01-02T15:04:05Z"),
             UpdatedAt:      user.UpdatedAt.Format("2006-01-02T15:04:05Z"),
@@ -115,8 +111,8 @@ func (s userRPC) ListUsers(ctx context.Context, req *pb.ListUsersReq) (*pb.ListU
 	}, nil
 }
 
-func (s userRPC) GetAllUsers(ctx context.Context, req *pb.ListUsersReq) (*pb.ListUsersRes, error) {
-	gotAllUsers, err := s.userUsecase.GetAllUsers(ctx, int64(req.Limit), int64(req.Offset))
+func (s userRPC) ListDeletedUsers(ctx context.Context, req *pb.ListUsersReq) (*pb.ListUsersRes, error) {
+	gotAllUsers, err := s.userUsecase.ListDeletedUsers(ctx, int64(req.Limit), int64(req.Offset))
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +129,6 @@ func (s userRPC) GetAllUsers(ctx context.Context, req *pb.ListUsersReq) (*pb.Lis
             Gender:         user.Gender,
             PhoneNumber:    user.PhoneNumber,
 			Role:           user.Role,
-            EstablishmentId:user.EstablishmentId,
             RefreshToken:   user.RefreshToken,
             CreatedAt:      user.CreatedAt.Format("2006-01-02T15:04:05Z"),
             UpdatedAt:      user.UpdatedAt.Format("2006-01-02T15:04:05Z"),
@@ -157,7 +152,6 @@ func (s userRPC) Update(ctx context.Context, req *pb.User) (*pb.User, error) {
 		Gender:         req.Gender,
 		PhoneNumber:    req.PhoneNumber,
 		Role:           req.Role,
-		EstablishmentId:req.EstablishmentId,
 		RefreshToken:   req.RefreshToken,
 	})
 	if err != nil {
@@ -174,7 +168,6 @@ func (s userRPC) Update(ctx context.Context, req *pb.User) (*pb.User, error) {
 		Gender:         updatedUser.Gender,
 		PhoneNumber:    updatedUser.PhoneNumber,
 		Role:           updatedUser.Role,
-		EstablishmentId:updatedUser.EstablishmentId,
 		RefreshToken:   updatedUser.RefreshToken,
     }, nil
 }
@@ -190,6 +183,52 @@ func (s userRPC) SoftDelete(ctx context.Context, req *pb.Id) (*pb.DelRes, error)
 func (s userRPC) HardDelete(ctx context.Context, req *pb.Id) (*pb.DelRes, error) {
 	err := s.userUsecase.HardDelete(ctx, req.Id)
 	if err != nil {
+        return nil, err
+    }
+    return &pb.DelRes{}, nil
+}
+
+func (s userRPC) UserEstablishmentCreate(ctx context.Context, req *pb.UE) (*pb.UE, error) {
+	id, user_id, establishment_id, err := s.userUsecase.UserEstablishmentCreate(ctx, req.Id, req.UserId, req.EstablishmentId)
+    if err != nil {
+        return nil, err
+    }
+    return &pb.UE{
+		Id: id,
+		UserId: user_id,
+		EstablishmentId: establishment_id,
+	}, nil
+}
+
+func (s userRPC) UserEstablishmentGet(ctx context.Context, req *pb.UE) (*pb.UEwU, error) {
+	id, user, establishment_id, err := s.userUsecase.UserEstablishmentGet(ctx, req.Id)
+    if err!= nil {
+        return nil, err
+    }
+    return &pb.UEwU{
+		Id: id,
+		User: &pb.User{
+			Id:				user.Id,
+            FullName:		user.FullName,
+            Email:			user.Email,
+            Password:		user.Password,
+            DateOfBirth:	user.DateOfBirth,
+            ProfileImg:		user.ProfileImg,
+            Card:			user.Card,
+            Gender:			user.Gender,
+            PhoneNumber:	user.PhoneNumber,
+            Role:			user.Role,
+            RefreshToken:	user.RefreshToken,
+            CreatedAt:		user.CreatedAt.Format("2006-01-02T15:04:05Z"),
+            UpdatedAt:		user.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		},
+		EstablishmentId: establishment_id,
+	}, nil
+}
+
+func (s userRPC) UserEstablishmentDelete(ctx context.Context, req *pb.UE) (*pb.DelRes, error) {
+	err := s.userUsecase.UserEstablishmentDelete(ctx, req.Id)
+    if err!= nil {
         return nil, err
     }
     return &pb.DelRes{}, nil

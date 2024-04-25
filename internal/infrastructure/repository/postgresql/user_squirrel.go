@@ -4,6 +4,7 @@ import (
 	"Booking/user-service-booking/internal/entity"
 	"Booking/user-service-booking/internal/pkg/postgres"
 	"context"
+	"database/sql"
 	"fmt"
 	"time"
 
@@ -11,20 +12,23 @@ import (
 )
 
 const (
-	userTableName      = "users"
-	userServiceName    = "userService"
-	userSpanRepoPrefix = "userRepo"
+	userTableName				= "users"
+	userEstablishmentTableName	= "users_establishment"
+	userServiceName				= "userService"
+	userSpanRepoPrefix			= "userRepo"
 )
 
 type userRepo struct {
-	tableName string
-	db        *postgres.PostgresDB
+	userTableName				string
+	userEstablishmentTableName	string
+	db							*postgres.PostgresDB
 }
 
 func NewUserRepo(db *postgres.PostgresDB) *userRepo {
 	return &userRepo{
-		tableName: userTableName,
-		db:        db,
+		userTableName:				userTableName,
+		userEstablishmentTableName: userEstablishmentTableName,
+		db:        					db,
 	}
 }
 
@@ -40,12 +44,29 @@ func (p *userRepo) userSelectQueryPrefix() squirrel.SelectBuilder {
 		"gender",
 		"phone_number",
 		"role",
-		"establishment_id",
+		"refresh_token",
+		"created_at",
+		"updated_at",
+	).From(p.userTableName)
+}
+
+func (p *userRepo) userSelectQueryPrefixAdmin() squirrel.SelectBuilder {
+	return p.db.Sq.Builder.Select(
+		"id",
+		"full_name",
+		"email",
+		"password",
+		"TO_CHAR(date_of_birth, 'YYYY-MM-DD') AS date_of_birth",
+		"profile_img",
+		"card",
+		"gender",
+		"phone_number",
+		"role",
 		"refresh_token",
 		"created_at",
 		"updated_at",
 		"deleted_at",
-	).From(p.tableName)
+	).From(p.userTableName)
 }
 
 func (p userRepo) Create(ctx context.Context, user *entity.User) (*entity.User, error) {
@@ -64,13 +85,11 @@ func (p userRepo) Create(ctx context.Context, user *entity.User) (*entity.User, 
 		"gender":          user.Gender,
 		"phone_number":    user.PhoneNumber,
 		"role":            user.Role,
-		"establishment_id":user.EstablishmentId,
 		"refresh_token":   user.RefreshToken,
 		"created_at":      user.CreatedAt,
 		"updated_at":      user.UpdatedAt,
-		"deleted_at":      user.DeletedAt,
 	}
-	query, args, err := p.db.Sq.Builder.Insert(p.tableName).SetMap(data).ToSql()
+	query, args, err := p.db.Sq.Builder.Insert(p.userTableName).SetMap(data).ToSql()
 	if err != nil {
 		return user, fmt.Errorf("failed to build SQL query for creating user: %v", err)
 	}
@@ -92,6 +111,7 @@ func (p userRepo) Get(ctx context.Context, params map[string]string) (*entity.Us
 		if key == "id" {
 			queryBuilder = queryBuilder.Where(p.db.Sq.Equal(key, value))
 		}
+    	queryBuilder = queryBuilder.Where(p.db.Sq.Equal("deleted_at", nil))
 	}
 
 	query, args, err := queryBuilder.ToSql()
@@ -109,11 +129,9 @@ func (p userRepo) Get(ctx context.Context, params map[string]string) (*entity.Us
 		&user.Gender,
 		&user.PhoneNumber,
 		&user.Role,
-		&user.EstablishmentId,
 		&user.RefreshToken,
 		&user.CreatedAt,
 		&user.UpdatedAt,
-		&user.DeletedAt,
 	); err != nil {
 		return nil, fmt.Errorf("failed to get user: %v", err)
 	}
@@ -130,7 +148,7 @@ func (p userRepo) ListUsers(ctx context.Context, limit, offset int64) ([]*entity
 		queryBuilder = queryBuilder.Limit(uint64(limit)).Offset(uint64(offset))
 	}
 
-    queryBuilder = queryBuilder.Where("deleted_at IS NULL")
+    queryBuilder = queryBuilder.Where(p.db.Sq.Equal("deleted_at", nil))
 
 	query, args, err := queryBuilder.ToSql()
 	if err != nil {
@@ -156,11 +174,9 @@ func (p userRepo) ListUsers(ctx context.Context, limit, offset int64) ([]*entity
 			&user.Gender,
 			&user.PhoneNumber,
 			&user.Role,
-			&user.EstablishmentId,
 			&user.RefreshToken,
 			&user.CreatedAt,
 			&user.UpdatedAt,
-			&user.DeletedAt,
 		); err != nil {
 			return nil, fmt.Errorf("failed to scan row while listing users: %v", err)
 		}
@@ -170,15 +186,16 @@ func (p userRepo) ListUsers(ctx context.Context, limit, offset int64) ([]*entity
 	return users, nil
 }
 
-func (p userRepo) GetAllUsers(ctx context.Context, limit, offset int64) ([]*entity.User, error) {
+func (p userRepo) ListDeletedUsers(ctx context.Context, limit, offset int64) ([]*entity.User, error) {
 	var users []*entity.User
 
-	queryBuilder := p.userSelectQueryPrefix()
+	queryBuilder := p.userSelectQueryPrefixAdmin()
 
 	if limit != 0 {
 		queryBuilder = queryBuilder.Limit(uint64(limit)).Offset(uint64(offset))
 	}
 
+    queryBuilder = queryBuilder.Where(p.db.Sq.NotEqual("deleted_at", nil))
 	query, args, err := queryBuilder.ToSql()
 	if err != nil {
 		return nil, fmt.Errorf("failed to build SQL query for listing all users: %v", err)
@@ -189,7 +206,6 @@ func (p userRepo) GetAllUsers(ctx context.Context, limit, offset int64) ([]*enti
 		return nil, fmt.Errorf("failed to execute SQL query for listing all users: %v", err)
 	}
 	defer rows.Close()
-	users = make([]*entity.User, 0)
 	for rows.Next() {
 		var user entity.User
 		if err = rows.Scan(
@@ -203,7 +219,6 @@ func (p userRepo) GetAllUsers(ctx context.Context, limit, offset int64) ([]*enti
 			&user.Gender,
 			&user.PhoneNumber,
 			&user.Role,
-			&user.EstablishmentId,
 			&user.RefreshToken,
 			&user.CreatedAt,
 			&user.UpdatedAt,
@@ -232,7 +247,7 @@ func (p userRepo) Update(ctx context.Context, user *entity.User) (*entity.User, 
 		"gender":          user.Gender,
 		"phone_number":    user.PhoneNumber,
 	}
-	sqlStr, args, err := p.db.Sq.Builder.Update(p.tableName).
+	sqlStr, args, err := p.db.Sq.Builder.Update(p.userTableName).
 		SetMap(clauses).
 		Where(p.db.Sq.Equal("id", user.Id), p.db.Sq.Equal("deleted_at", nil)).
 		ToSql()
@@ -256,7 +271,7 @@ func (p userRepo) SoftDelete(ctx context.Context, id string) error {
 	clauses := map[string]interface{}{
 		"deleted_at": time.Now().Format("2006-01-02T15:04:05"),
 	}
-	sqlBuilder := p.db.Sq.Builder.Update(p.tableName).
+	sqlBuilder := p.db.Sq.Builder.Update(p.userTableName).
         SetMap(clauses).
         Where(p.db.Sq.Equal("id", id))
 
@@ -278,7 +293,7 @@ func (p userRepo) SoftDelete(ctx context.Context, id string) error {
 }
 
 func (p userRepo) HardDelete(ctx context.Context, id string) error {
-	sqlStr, args, err := p.db.Sq.Builder.Delete(p.tableName).Where(p.db.Sq.Equal("id", id)).ToSql()
+	sqlStr, args, err := p.db.Sq.Builder.Delete(p.userTableName).Where(p.db.Sq.Equal("id", id)).ToSql()
 	if err != nil {
 		return fmt.Errorf("failed to build SQL query for hard deleting user: %v", err)
 	}
@@ -293,4 +308,100 @@ func (p userRepo) HardDelete(ctx context.Context, id string) error {
 	}
 
 	return nil
+}
+
+func (p userRepo) UserEstablishmentCreate(ctx context.Context, id, user_id, establishment_id string) (string, string, string, error) {
+	sqlStr, args, err := p.db.Sq.Builder.Insert(p.userEstablishmentTableName).
+        Columns("id", "user_id", "establishment_id").
+        Values(id, user_id, establishment_id).
+        ToSql()
+    if err != nil {
+        return "", "", "", fmt.Errorf("failed to build SQL query for user establishment: %v", err)
+    }
+
+    commandTag, err := p.db.Exec(ctx, sqlStr, args...)
+    if err!= nil {
+        return "", "", "", fmt.Errorf("failed to execute SQL query for user establishment: %v", err)
+    }
+
+    if commandTag.RowsAffected() == 0 {
+        return "", "", "", fmt.Errorf("no rows affected while user establishment")
+    }
+	
+	return id, user_id, establishment_id, nil
+}
+
+func (p userRepo) UserEstablishmentGet(ctx context.Context, id string) (string, *entity.User, string, error) {
+	var user entity.User
+	var user_id string
+	var establishment_id string
+
+	sqlStr, args, err := p.db.Sq.Builder.
+		Select("user_id", "establishment_id").
+        From(p.userEstablishmentTableName).
+        Where(p.db.Sq.Equal("id", id)).
+        ToSql()
+    if err != nil {
+        return "", nil, "", fmt.Errorf("failed to build SQL query for user establishment: %v", err)
+    }
+	
+	
+    if err = p.db.QueryRow(ctx, sqlStr, args...).Scan(
+        &user_id,
+        &establishment_id,
+	); err!= nil {
+		if err == sql.ErrNoRows {
+			return "", nil, "", fmt.Errorf("user establishment not found with id: %s", id)
+		}
+        return "", nil, "", fmt.Errorf("failed to execute SQL query for user establishment: %v", err)
+    }
+
+	queryBuilder := p.userSelectQueryPrefix()
+	queryBuilder = queryBuilder.Where(p.db.Sq.Equal("deleted_at", nil))
+
+	query, args, err := queryBuilder.Where(p.db.Sq.Equal("id", user_id)).ToSql()
+	if err != nil {
+		return "", nil, "", fmt.Errorf("failed to build SQL query for getting user: %v", err)
+	}
+
+	if err = p.db.QueryRow(ctx, query, args...).Scan(
+		&user.Id,
+		&user.FullName,
+		&user.Email,
+		&user.Password,
+		&user.DateOfBirth,
+		&user.ProfileImg,
+		&user.Card,
+		&user.Gender,
+		&user.PhoneNumber,
+		&user.Role,
+		&user.RefreshToken,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	); err != nil {
+		if err == sql.ErrNoRows {
+			return "", nil, "", fmt.Errorf("user not found with id: %s", user_id)
+		}
+		return "", nil, "", fmt.Errorf("failed to get user: %v", err)
+	}
+
+	return id, &user, establishment_id, nil
+}
+
+func (p userRepo) UserEstablishmentDelete(ctx context.Context, id string) error {
+	sqlStr, args, err := p.db.Sq.Builder.Delete(p.userEstablishmentTableName).Where(p.db.Sq.Equal("id", id)).ToSql()
+    if err!= nil {
+        return fmt.Errorf("failed to build SQL query for user establishment: %v", err)
+    }
+
+    commandTag, err := p.db.Exec(ctx, sqlStr, args...)
+    if err!= nil {
+        return fmt.Errorf("failed to execute SQL query for user establishment: %v", err)
+    }
+
+    if commandTag.RowsAffected() == 0 {
+        return fmt.Errorf("no rows affected while user establishment")
+    }
+
+    return nil
 }

@@ -16,10 +16,13 @@ type User interface {
 	Create(ctx context.Context, user *entity.User) (*entity.User, error)
 	Get(ctx context.Context, params map[string]string) (*entity.User, error)
 	ListUsers(ctx context.Context, limit, offset int64) ([]*entity.User, error)
-	GetAllUsers(ctx context.Context, limit, offset int64) ([]*entity.User, error)
+	ListDeletedUsers(ctx context.Context, limit, offset int64) ([]*entity.User, error)
 	Update(ctx context.Context, user *entity.User) (*entity.User, error)
 	SoftDelete(ctx context.Context, id string) error
 	HardDelete(ctx context.Context, id string) error
+	UserEstablishmentCreate(ctx context.Context, id, user_id, establishment_id string) (string, string, string, error)
+	UserEstablishmentGet(ctx context.Context, id string) (string, *entity.User, string, error)
+	UserEstablishmentDelete(ctx context.Context, id string) error
 }
 
 type UserService struct {
@@ -58,11 +61,11 @@ func (u UserService) ListUsers(ctx context.Context, limit, offset int64) ([]*ent
 	return u.repo.ListUsers(ctx, limit, offset)
 }
 
-func (u UserService) GetAllUsers(ctx context.Context, limit, offset int64) ([]*entity.User, error) {
+func (u UserService) ListDeletedUsers(ctx context.Context, limit, offset int64) ([]*entity.User, error) {
 	ctx, cancel := context.WithTimeout(ctx, u.ctxTimeout)
 	defer cancel()
 
-	return u.repo.GetAllUsers(ctx, limit, offset)
+	return u.repo.ListDeletedUsers(ctx, limit, offset)
 }
 
 func (u UserService) Update(ctx context.Context, user *entity.User) (*entity.User, error) {
@@ -91,4 +94,25 @@ func (u UserService) HardDelete(ctx context.Context, id string) error {
     defer cancel()
 
     return u.repo.HardDelete(ctx, id)
+}
+
+func (u UserService) UserEstablishmentCreate(ctx context.Context, id, user_id, establishment_id string) (string, string, string, error) {
+	ctx, cancel := context.WithTimeout(ctx, u.ctxTimeout)
+    defer cancel()
+
+    return u.repo.UserEstablishmentCreate(ctx, id, user_id, establishment_id)
+}
+
+func (u UserService) UserEstablishmentGet(ctx context.Context, id string) (string, *entity.User, string, error) {
+	ctx, cancel := context.WithTimeout(ctx, u.ctxTimeout)
+    defer cancel()
+
+    return u.repo.UserEstablishmentGet(ctx, id)
+}
+
+func (u UserService) UserEstablishmentDelete(ctx context.Context, id string) error {
+	ctx, cancel := context.WithTimeout(ctx, u.ctxTimeout)
+    defer cancel()
+
+    return u.repo.UserEstablishmentDelete(ctx, id)
 }
