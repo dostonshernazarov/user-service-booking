@@ -187,3 +187,11 @@ func (s userRPC) HardDelete(ctx context.Context, req *pb.Id) (*pb.DelRes, error)
     }
     return &pb.DelRes{}, nil
 }
+
+func (s userRPC) UserEstablishment(ctx context.Context, req *pb.UE) (*pb.UE, error) {
+	id, err := s.userUsecase.UserEstablishment(ctx, req.Id, req.UserId, req.EstablishmentId)
+    if err!= nil {
+        return nil, err
+    }
+    return &pb.UE{Id: id}, nil
+}

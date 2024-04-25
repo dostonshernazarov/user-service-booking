@@ -13,4 +13,5 @@ type User interface {
 	Update(ctx context.Context, user *entity.User) (*entity.User, error)
 	SoftDelete(ctx context.Context, id string) error
 	HardDelete(ctx context.Context, id string) error
+	UserEstablishment(ctx context.Context, id, user_id, establishment_id string) (string, error)
 }
