@@ -311,8 +311,8 @@ func (p userRepo) HardDelete(ctx context.Context, id string) error {
 
 func (p userRepo) UserEstablishment(ctx context.Context, id, user_id, establishment_id string) (string, error) {
 	sqlStr, args, err := p.db.Sq.Builder.Insert(p.userEstablishmentTableName).
-        Columns("user_id", "establishment_id").
-        Values(user_id, establishment_id).
+        Columns("id", "user_id", "establishment_id").
+        Values(id, user_id, establishment_id).
         ToSql()
     if err!= nil {
         return "", fmt.Errorf("failed to build SQL query for user establishment: %v", err)
