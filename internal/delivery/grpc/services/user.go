@@ -180,55 +180,45 @@ func (s userRPC) SoftDelete(ctx context.Context, req *pb.Id) (*pb.DelRes, error)
     return &pb.DelRes{}, nil
 }
 
-func (s userRPC) HardDelete(ctx context.Context, req *pb.Id) (*pb.DelRes, error) {
-	err := s.userUsecase.HardDelete(ctx, req.Id)
-	if err != nil {
-        return nil, err
-    }
-    return &pb.DelRes{}, nil
-}
-
 func (s userRPC) UserEstablishmentCreate(ctx context.Context, req *pb.UE) (*pb.UE, error) {
-	id, user_id, establishment_id, err := s.userUsecase.UserEstablishmentCreate(ctx, req.Id, req.UserId, req.EstablishmentId)
+	user_id, establishment_id, err := s.userUsecase.UserEstablishmentCreate(ctx, req.UserId, req.EstablishmentId)
     if err != nil {
         return nil, err
     }
     return &pb.UE{
-		Id: id,
 		UserId: user_id,
 		EstablishmentId: establishment_id,
 	}, nil
 }
 
-func (s userRPC) UserEstablishmentGet(ctx context.Context, req *pb.UE) (*pb.UEwU, error) {
-	id, user, establishment_id, err := s.userUsecase.UserEstablishmentGet(ctx, req.Id)
-    if err!= nil {
+func (s userRPC) UserEstablishmentGet(ctx context.Context, req *pb.Filter) (*pb.UEwU, error) {
+	user, establishment_id, err := s.userUsecase.UserEstablishmentGet(ctx, req.Filter)
+    if err != nil {
         return nil, err
     }
     return &pb.UEwU{
-		Id: id,
-		User: &pb.User{
-			Id:				user.Id,
-            FullName:		user.FullName,
-            Email:			user.Email,
+        User: &pb.User{
+			Id:             user.Id,
+            FullName:       user.FullName,
+            Email:          user.Email,
             Password:		user.Password,
-            DateOfBirth:	user.DateOfBirth,
-            ProfileImg:		user.ProfileImg,
-            Card:			user.Card,
-            Gender:			user.Gender,
-            PhoneNumber:	user.PhoneNumber,
-            Role:			user.Role,
-            RefreshToken:	user.RefreshToken,
-            CreatedAt:		user.CreatedAt.Format("2006-01-02T15:04:05Z"),
-            UpdatedAt:		user.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+			DateOfBirth:    user.DateOfBirth,
+            ProfileImg:     user.ProfileImg,
+            Card:           user.Card,
+            Gender:         user.Gender,
+            PhoneNumber:    user.PhoneNumber,
+			Role:           user.Role,
+            RefreshToken:   user.RefreshToken,
+            CreatedAt:      user.CreatedAt.Format("2006-01-02T15:04:05Z"),
+            UpdatedAt:      user.UpdatedAt.Format("2006-01-02T15:04:05Z"),
 		},
-		EstablishmentId: establishment_id,
-	}, nil
+        EstablishmentId: establishment_id,
+    }, nil
 }
 
-func (s userRPC) UserEstablishmentDelete(ctx context.Context, req *pb.UE) (*pb.DelRes, error) {
-	err := s.userUsecase.UserEstablishmentDelete(ctx, req.Id)
-    if err!= nil {
+func (s userRPC) UserEstablishmentDelete(ctx context.Context, req *pb.Filter) (*pb.DelRes, error) {
+	err := s.userUsecase.UserEstablishmentDelete(ctx, req.Filter)
+    if err != nil {
         return nil, err
     }
     return &pb.DelRes{}, nil

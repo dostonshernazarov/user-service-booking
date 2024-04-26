@@ -292,104 +292,83 @@ func (p userRepo) SoftDelete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (p userRepo) HardDelete(ctx context.Context, id string) error {
-	sqlStr, args, err := p.db.Sq.Builder.Delete(p.userTableName).Where(p.db.Sq.Equal("id", id)).ToSql()
-	if err != nil {
-		return fmt.Errorf("failed to build SQL query for hard deleting user: %v", err)
-	}
-
-	commandTag, err := p.db.Exec(ctx, sqlStr, args...)
-	if err != nil {
-		return fmt.Errorf("failed to execute SQL query for hard deleting user: %v", err)
-	}
-
-	if commandTag.RowsAffected() == 0 {
-		return fmt.Errorf("no rows affected while hard deleting user")
-	}
-
-	return nil
-}
-
-func (p userRepo) UserEstablishmentCreate(ctx context.Context, id, user_id, establishment_id string) (string, string, string, error) {
+func (p userRepo) UserEstablishmentCreate(ctx context.Context, user_id, establishment_id string) (string, string, error) {
 	sqlStr, args, err := p.db.Sq.Builder.Insert(p.userEstablishmentTableName).
-        Columns("id", "user_id", "establishment_id").
-        Values(id, user_id, establishment_id).
+        Columns("user_id", "establishment_id").
+        Values(user_id, establishment_id).
         ToSql()
     if err != nil {
-        return "", "", "", fmt.Errorf("failed to build SQL query for user establishment: %v", err)
+        return "", "", fmt.Errorf("failed to build SQL query for user establishment: %v", err)
     }
 
     commandTag, err := p.db.Exec(ctx, sqlStr, args...)
     if err!= nil {
-        return "", "", "", fmt.Errorf("failed to execute SQL query for user establishment: %v", err)
+        return "", "", fmt.Errorf("failed to execute SQL query for user establishment: %v", err)
     }
 
     if commandTag.RowsAffected() == 0 {
-        return "", "", "", fmt.Errorf("no rows affected while user establishment")
+        return "", "", fmt.Errorf("no rows affected while user establishment")
     }
 	
-	return id, user_id, establishment_id, nil
+	return user_id, establishment_id, nil
 }
 
-func (p userRepo) UserEstablishmentGet(ctx context.Context, id string) (string, *entity.User, string, error) {
+func (p userRepo) UserEstablishmentGet(ctx context.Context, params map[string]string) (*entity.User, string, error) {
 	var user entity.User
-	var user_id string
-	var establishment_id string
-
-	sqlStr, args, err := p.db.Sq.Builder.
-		Select("user_id", "establishment_id").
-        From(p.userEstablishmentTableName).
-        Where(p.db.Sq.Equal("id", id)).
-        ToSql()
-    if err != nil {
-        return "", nil, "", fmt.Errorf("failed to build SQL query for user establishment: %v", err)
-    }
-	
-	
-    if err = p.db.QueryRow(ctx, sqlStr, args...).Scan(
-        &user_id,
-        &establishment_id,
-	); err!= nil {
-		if err == sql.ErrNoRows {
-			return "", nil, "", fmt.Errorf("user establishment not found with id: %s", id)
-		}
-        return "", nil, "", fmt.Errorf("failed to execute SQL query for user establishment: %v", err)
-    }
-
+	var user_id = params["user_id"]
+	var establishment_id = params["establishment_id"]
 	queryBuilder := p.userSelectQueryPrefix()
-	queryBuilder = queryBuilder.Where(p.db.Sq.Equal("deleted_at", nil))
-
-	query, args, err := queryBuilder.Where(p.db.Sq.Equal("id", user_id)).ToSql()
-	if err != nil {
-		return "", nil, "", fmt.Errorf("failed to build SQL query for getting user: %v", err)
-	}
-
-	if err = p.db.QueryRow(ctx, query, args...).Scan(
-		&user.Id,
-		&user.FullName,
-		&user.Email,
-		&user.Password,
-		&user.DateOfBirth,
-		&user.ProfileImg,
-		&user.Card,
-		&user.Gender,
-		&user.PhoneNumber,
-		&user.Role,
-		&user.RefreshToken,
-		&user.CreatedAt,
-		&user.UpdatedAt,
-	); err != nil {
-		if err == sql.ErrNoRows {
-			return "", nil, "", fmt.Errorf("user not found with id: %s", user_id)
+	for key, value := range params {
+		if key == "id" {
+			queryBuilder = queryBuilder.Where(p.db.Sq.Equal(key, value))
 		}
-		return "", nil, "", fmt.Errorf("failed to get user: %v", err)
+    	queryBuilder = queryBuilder.Where(p.db.Sq.Equal("deleted_at", nil))
 	}
+    sqlStr, args, err := queryBuilder.
+        Join(p.userEstablishmentTableName + " ON " + p.userTableName + ".id = " + p.userEstablishmentTableName + ".user_id").
+        Where(p.db.Sq.Equal("users_establishment.user_id", user_id)).
+		Where(p.db.Sq.Equal("users_establishment.establishment_id", establishment_id)).
+        ToSql()
+    if err!= nil {
+        return &user, "", fmt.Errorf("failed to build SQL query for user establishment: %v", err)
+    }
 
-	return id, &user, establishment_id, nil
+    rows, err := p.db.Query(ctx, sqlStr, args...)
+	if err!= nil {
+        return &user, "", fmt.Errorf("failed to execute SQL query for user establishment: %v", err)
+    }
+	defer rows.Close()
+	found := false
+	for rows.Next() {
+		if err = rows.Scan(
+            &user.Id,
+            &user.FullName,
+            &user.Email,
+            &user.Password,
+            &user.DateOfBirth,
+            &user.ProfileImg,
+            &user.Card,
+            &user.Gender,
+            &user.PhoneNumber,
+            &user.Role,
+            &user.RefreshToken,
+            &user.CreatedAt,
+            &user.UpdatedAt,
+        ); err!= nil {
+            return &user, "", fmt.Errorf("failed to scan row while user establishment: %v", err)
+        }
+		found = true
+	}
+	if !found {
+		return &user, "", sql.ErrNoRows
+	}
+	return &user, establishment_id, nil
 }
 
-func (p userRepo) UserEstablishmentDelete(ctx context.Context, id string) error {
-	sqlStr, args, err := p.db.Sq.Builder.Delete(p.userEstablishmentTableName).Where(p.db.Sq.Equal("id", id)).ToSql()
+func (p userRepo) UserEstablishmentDelete(ctx context.Context, params map[string]string) error {
+	sqlStr, args, err := p.db.Sq.Builder.Delete(p.userEstablishmentTableName).
+        Where(p.db.Sq.Equal("user_id", params["user_id"]), p.db.Sq.Equal("establishment_id", params["establishment_id"])).
+        ToSql()
     if err!= nil {
         return fmt.Errorf("failed to build SQL query for user establishment: %v", err)
     }
@@ -402,6 +381,6 @@ func (p userRepo) UserEstablishmentDelete(ctx context.Context, id string) error 
     if commandTag.RowsAffected() == 0 {
         return fmt.Errorf("no rows affected while user establishment")
     }
-
+    
     return nil
 }

@@ -17,10 +17,8 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 CREATE TABLE IF NOT EXISTS users_establishment (
-    id UUID NOT NULL,
     user_id UUID NOT NULL,
-    establishment_id UUID NOT NULL,
-    PRIMARY KEY (id),
+    establishment_id UUID NOT NULL UNIQUE,
     FOREIGN KEY (user_id) REFERENCES users(id)
     ON DELETE CASCADE
     ON UPDATE CASCADE
