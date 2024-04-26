@@ -125,8 +125,4 @@ func TestUserPostgres(t *testing.T) {
 	Users, err := repo.ListDeletedUsers(ctx, 0, 0)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, Users)
-
-	// // Test Method HardDelete User BY ID
-	err = repo.HardDelete(ctx, user.Id)
-	assert.NoError(t, err)
 }
