@@ -2,6 +2,7 @@ package postgresql
 
 import (
 	"Booking/user-service-booking/internal/entity"
+	"Booking/user-service-booking/internal/pkg/otlp"
 	"Booking/user-service-booking/internal/pkg/postgres"
 	"context"
 	"database/sql"
@@ -70,6 +71,9 @@ func (p *userRepo) userSelectQueryPrefixAdmin() squirrel.SelectBuilder {
 }
 
 func (p userRepo) Create(ctx context.Context, user *entity.User) (*entity.User, error) {
+	ctx, span := otlp.Start(ctx, userServiceName, userSpanRepoPrefix+"Create")
+	defer span.End()
+
 	DOB, err := time.Parse("2006-01-02", user.DateOfBirth)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse date of birth: %v", err)
@@ -103,6 +107,9 @@ func (p userRepo) Create(ctx context.Context, user *entity.User) (*entity.User, 
 }
 
 func (p userRepo) Get(ctx context.Context, params map[string]string) (*entity.User, error) {
+	ctx, span := otlp.Start(ctx, userServiceName, userSpanRepoPrefix+"Get")
+	defer span.End()
+
 	var user entity.User
 
 	queryBuilder := p.userSelectQueryPrefix()
@@ -140,6 +147,9 @@ func (p userRepo) Get(ctx context.Context, params map[string]string) (*entity.Us
 }
 
 func (p userRepo) ListUsers(ctx context.Context, limit, offset int64) ([]*entity.User, error) {
+	ctx, span := otlp.Start(ctx, userServiceName, userSpanRepoPrefix+"ListUsers")
+	defer span.End()
+
 	var users []*entity.User
 
 	queryBuilder := p.userSelectQueryPrefix()
@@ -187,6 +197,9 @@ func (p userRepo) ListUsers(ctx context.Context, limit, offset int64) ([]*entity
 }
 
 func (p userRepo) ListDeletedUsers(ctx context.Context, limit, offset int64) ([]*entity.User, error) {
+	ctx, span := otlp.Start(ctx, userServiceName, userSpanRepoPrefix+"ListDeletedUsers")
+	defer span.End()
+
 	var users []*entity.User
 
 	queryBuilder := p.userSelectQueryPrefixAdmin()
@@ -233,6 +246,9 @@ func (p userRepo) ListDeletedUsers(ctx context.Context, limit, offset int64) ([]
 }
 
 func (p userRepo) Update(ctx context.Context, user *entity.User) (*entity.User, error) {
+	ctx, span := otlp.Start(ctx, userServiceName, userSpanRepoPrefix+"Update")
+	defer span.End()
+
 	DOB, err := time.Parse("2006-01-02", user.DateOfBirth)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse date of birth: %v", err)
@@ -268,6 +284,9 @@ func (p userRepo) Update(ctx context.Context, user *entity.User) (*entity.User, 
 }
 
 func (p userRepo) SoftDelete(ctx context.Context, id string) error {
+	ctx, span := otlp.Start(ctx, userServiceName, userSpanRepoPrefix+"Delete")
+	defer span.End()
+
 	clauses := map[string]interface{}{
 		"deleted_at": time.Now().Format("2006-01-02T15:04:05"),
 	}
@@ -293,6 +312,9 @@ func (p userRepo) SoftDelete(ctx context.Context, id string) error {
 }
 
 func (p userRepo) UserEstablishmentCreate(ctx context.Context, user_id, establishment_id string) (string, string, error) {
+	ctx, span := otlp.Start(ctx, userServiceName, userSpanRepoPrefix+"UECreate")
+	defer span.End()
+
 	sqlStr, args, err := p.db.Sq.Builder.Insert(p.userEstablishmentTableName).
         Columns("user_id", "establishment_id").
         Values(user_id, establishment_id).
@@ -314,6 +336,9 @@ func (p userRepo) UserEstablishmentCreate(ctx context.Context, user_id, establis
 }
 
 func (p userRepo) UserEstablishmentGet(ctx context.Context, params map[string]string) (*entity.User, string, error) {
+	ctx, span := otlp.Start(ctx, userServiceName, userSpanRepoPrefix+"UEGet")
+	defer span.End()
+
 	var user entity.User
 	var user_id = params["user_id"]
 	var establishment_id = params["establishment_id"]
@@ -366,6 +391,9 @@ func (p userRepo) UserEstablishmentGet(ctx context.Context, params map[string]st
 }
 
 func (p userRepo) UserEstablishmentDelete(ctx context.Context, params map[string]string) error {
+	ctx, span := otlp.Start(ctx, userServiceName, userSpanRepoPrefix+"UEDelete")
+	defer span.End()
+
 	sqlStr, args, err := p.db.Sq.Builder.Delete(p.userEstablishmentTableName).
         Where(p.db.Sq.Equal("user_id", params["user_id"]), p.db.Sq.Equal("establishment_id", params["establishment_id"])).
         ToSql()
