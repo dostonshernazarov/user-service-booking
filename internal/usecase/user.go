@@ -20,9 +20,13 @@ type User interface {
 	ListDeletedUsers(ctx context.Context, limit, offset int64) ([]*entity.User, error)
 	Update(ctx context.Context, user *entity.User) (*entity.User, error)
 	SoftDelete(ctx context.Context, id string) error
+
 	UserEstablishmentCreate(ctx context.Context, user_id, establishment_id string) (string, string, error)
 	UserEstablishmentGet(ctx context.Context, params map[string]string) (*entity.User, string, error)
 	UserEstablishmentDelete(ctx context.Context, params map[string]string) error
+
+	CheckUniquess(ctx context.Context, field, value string) (int32, error)
+	Exists(ctx context.Context, field, value string) (*entity.User, error)
 }
 
 type UserService struct {
@@ -135,4 +139,24 @@ func (u UserService) UserEstablishmentDelete(ctx context.Context, params map[str
 	defer span.End()
 
     return u.repo.UserEstablishmentDelete(ctx, params)
+}
+
+func (u UserService) CheckUniquess(ctx context.Context, field, value string) (int32, error) {
+	ctx, cancel := context.WithTimeout(ctx, u.ctxTimeout)
+    defer cancel()
+
+    ctx, span := otlp.Start(ctx, serviceNameUser, spanNameUser+"CheckUniquess")
+    defer span.End()
+
+    return u.repo.CheckUniquess(ctx, field, value)
+}
+
+func (u UserService) Exists(ctx context.Context, field, value string) (*entity.User, error) {
+	ctx, cancel := context.WithTimeout(ctx, u.ctxTimeout)
+    defer cancel()
+
+    ctx, span := otlp.Start(ctx, serviceNameUser, spanNameUser+"Exists")
+    defer span.End()
+
+    return u.repo.Exists(ctx, field, value)
 }

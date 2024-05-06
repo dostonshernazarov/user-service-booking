@@ -412,3 +412,50 @@ func (p userRepo) UserEstablishmentDelete(ctx context.Context, params map[string
     
     return nil
 }
+
+func (p userRepo) CheckUniquess(ctx context.Context, field, value string) (int32, error) {
+	ctx, span := otlp.Start(ctx, userServiceName, userSpanRepoPrefix+"CheckUniquess")
+	defer span.End()
+
+	var code int32
+	sqlStr, args, err := p.db.Sq.Builder.Select("COUNT(*)").From(p.userTableName).Where(p.db.Sq.Equal(field, value)).ToSql()
+	if err!= nil {
+        return code, fmt.Errorf("failed to build SQL query for check uniquess: %v", err)
+    }
+	row := p.db.QueryRow(ctx, sqlStr, args...)
+	if err = row.Scan(&code); err!= nil {
+        return code, fmt.Errorf("failed to scan row while check uniquess: %v", err)
+    }
+	return code, nil
+}
+
+func (p userRepo) Exists(ctx context.Context, field, value string) (*entity.User, error) {
+	ctx, span := otlp.Start(ctx, userServiceName, userSpanRepoPrefix+"Exists")
+	defer span.End()
+
+	var user entity.User
+	queryBuilder := p.userSelectQueryPrefix()
+	sqlStr, args, err := queryBuilder.Where(p.db.Sq.Equal(field, value)).ToSql()
+	if err!= nil {
+        return &user, fmt.Errorf("failed to build SQL query for exists: %v", err)
+    }
+	row := p.db.QueryRow(ctx, sqlStr, args...)
+	if err = row.Scan(
+			&user.Id,
+			&user.FullName,
+			&user.Email,
+			&user.Password,
+			&user.DateOfBirth,
+			&user.ProfileImg,
+			&user.Card,
+			&user.Gender,
+			&user.PhoneNumber,
+			&user.Role,
+			&user.RefreshToken,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+		); err!= nil {
+		return &user, fmt.Errorf("failed to scan row while exists: %v", err)
+	}
+	return &user, nil
+}

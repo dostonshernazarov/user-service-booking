@@ -285,3 +285,49 @@ func (s userRPC) UserEstablishmentDelete(ctx context.Context, req *pb.Filter) (*
     }
     return &pb.DelRes{}, nil
 }
+
+func (s userRPC) CheckUniquess(ctx context.Context, req *pb.FV) (*pb.Status, error) {
+	ctx, span := otlp.Start(ctx, "Delivery", "CheckUniquess")
+    span.SetAttributes(
+      attribute.Key("deliveryCheckUniquessField").String(fmt.Sprint(req.Field)),
+      attribute.Key("deliveryCheckUniquessValue").String(fmt.Sprint(req.Value)),
+    )
+    defer span.End()
+    
+    status, err := s.userUsecase.CheckUniquess(ctx, req.Field, req.Value)
+    if err!= nil {
+        return nil, err
+    }
+    return &pb.Status{
+        Code: status,
+    }, nil
+}
+
+func (s userRPC) Exists(ctx context.Context, req *pb.FV) (*pb.User, error) {
+	ctx, span := otlp.Start(ctx, "Delivery", "Exists")
+	span.SetAttributes(
+      attribute.Key("deliveryExistsField").String(fmt.Sprint(req.Field)),
+      attribute.Key("deliveryExistsValue").String(fmt.Sprint(req.Value)),
+    )
+	defer span.End()
+
+	user, err := s.userUsecase.Exists(ctx, req.Field, req.Value)
+	if err!= nil {
+        return nil, err
+    }
+	return &pb.User{
+		Id:             user.Id,
+        FullName:       user.FullName,
+        Email:          user.Email,
+        Password:        user.Password,
+        DateOfBirth:    user.DateOfBirth,
+        ProfileImg:     user.ProfileImg,
+        Card:           user.Card,
+        Gender:         user.Gender,
+        PhoneNumber:    user.PhoneNumber,
+        Role:           user.Role,
+        RefreshToken:   user.RefreshToken,
+        CreatedAt:      user.CreatedAt.Format("2006-01-02T15:04:05Z"),
+        UpdatedAt:      user.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+    }, nil
+}
