@@ -287,6 +287,18 @@ func (p userRepo) SoftDelete(ctx context.Context, id string) error {
 	ctx, span := otlp.Start(ctx, userServiceName, userSpanRepoPrefix+"Delete")
 	defer span.End()
 
+	var deletedAt sql.NullTime
+	err := p.db.QueryRow(ctx, "SELECT deleted_at FROM " +p.userTableName+ " WHERE id = $1", id).Scan(&deletedAt)
+	if err != nil {
+        if err == sql.ErrNoRows {
+            return fmt.Errorf("%s: not found", id)
+        }
+        return fmt.Errorf("failed to query user: %v", err)
+    }
+    if deletedAt.Valid && !deletedAt.Time.IsZero() {
+        return fmt.Errorf("%s: is already soft-deleted", id)
+    }
+
 	clauses := map[string]interface{}{
 		"deleted_at": time.Now().Format("2006-01-02T15:04:05"),
 	}
@@ -418,7 +430,7 @@ func (p userRepo) CheckUniquess(ctx context.Context, field, value string) (int32
 	defer span.End()
 
 	var code int32
-	sqlStr, args, err := p.db.Sq.Builder.Select("COUNT(*)").From(p.userTableName).Where(p.db.Sq.Equal(field, value)).ToSql()
+	sqlStr, args, err := p.db.Sq.Builder.Select("COUNT(*)").From(p.userTableName).Where(p.db.Sq.Equal(field, value)).Where(p.db.Sq.Equal("deleted_at", nil)).ToSql()
 	if err!= nil {
         return code, fmt.Errorf("failed to build SQL query for check uniquess: %v", err)
     }
@@ -435,7 +447,7 @@ func (p userRepo) Exists(ctx context.Context, field, value string) (*entity.User
 
 	var user entity.User
 	queryBuilder := p.userSelectQueryPrefix()
-	sqlStr, args, err := queryBuilder.Where(p.db.Sq.Equal(field, value)).ToSql()
+	sqlStr, args, err := queryBuilder.Where(p.db.Sq.Equal(field, value)).Where(p.db.Sq.Equal("deleted_at", nil)).ToSql()
 	if err!= nil {
         return &user, fmt.Errorf("failed to build SQL query for exists: %v", err)
     }
@@ -455,7 +467,10 @@ func (p userRepo) Exists(ctx context.Context, field, value string) (*entity.User
 			&user.CreatedAt,
 			&user.UpdatedAt,
 		); err!= nil {
-		return &user, fmt.Errorf("failed to scan row while exists: %v", err)
-	}
+			if err == sql.ErrNoRows {
+				return nil, nil
+			}
+			return nil, fmt.Errorf("failed to scan row while checking existence: %v", err)
+		}
 	return &user, nil
 }
