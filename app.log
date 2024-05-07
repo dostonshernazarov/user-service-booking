@@ -2235,3 +2235,5 @@ google.golang.org/grpc.(*Server).serveStreams.func2.1
 	/home/awez/projects/nt/go/pkg/mod/google.golang.org/grpc@v1.63.2/server.go:1019
 2024-04-26T13:06:37.161+0500	INFO	zap/options.go:212	finished unary call with code OK	{"grpc.start_time": "2024-04-26T13:06:37+05:00", "system": "grpc", "span.kind": "server", "grpc.service": "user.UserService", "grpc.method": "UserEstablishmentGet", "peer.address": "127.0.0.1:57766", "grpc.code": "OK", "grpc.time_ms": 1.427}
 2024-04-26T13:06:45.677+0500	INFO	app/main.go:36	User service stops !
+2024-05-07T21:35:01.862+0500	INFO	app/app.go:101	gRPC Server Listening	{"url": ":50025"}
+2024-05-07T21:35:31.768+0500	INFO	app/main.go:36	User service stops !
