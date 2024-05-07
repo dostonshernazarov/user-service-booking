@@ -2,6 +2,7 @@ package postgresql
 
 import (
 	"Booking/user-service-booking/internal/entity"
+	"Booking/user-service-booking/internal/pkg/otlp"
 	"Booking/user-service-booking/internal/pkg/postgres"
 	"context"
 	"database/sql"
@@ -70,6 +71,9 @@ func (p *userRepo) userSelectQueryPrefixAdmin() squirrel.SelectBuilder {
 }
 
 func (p userRepo) Create(ctx context.Context, user *entity.User) (*entity.User, error) {
+	ctx, span := otlp.Start(ctx, userServiceName, userSpanRepoPrefix+"Create")
+	defer span.End()
+
 	DOB, err := time.Parse("2006-01-02", user.DateOfBirth)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse date of birth: %v", err)
@@ -103,6 +107,9 @@ func (p userRepo) Create(ctx context.Context, user *entity.User) (*entity.User, 
 }
 
 func (p userRepo) Get(ctx context.Context, params map[string]string) (*entity.User, error) {
+	ctx, span := otlp.Start(ctx, userServiceName, userSpanRepoPrefix+"Get")
+	defer span.End()
+
 	var user entity.User
 
 	queryBuilder := p.userSelectQueryPrefix()
@@ -140,6 +147,9 @@ func (p userRepo) Get(ctx context.Context, params map[string]string) (*entity.Us
 }
 
 func (p userRepo) ListUsers(ctx context.Context, limit, offset int64) ([]*entity.User, error) {
+	ctx, span := otlp.Start(ctx, userServiceName, userSpanRepoPrefix+"ListUsers")
+	defer span.End()
+
 	var users []*entity.User
 
 	queryBuilder := p.userSelectQueryPrefix()
@@ -187,6 +197,9 @@ func (p userRepo) ListUsers(ctx context.Context, limit, offset int64) ([]*entity
 }
 
 func (p userRepo) ListDeletedUsers(ctx context.Context, limit, offset int64) ([]*entity.User, error) {
+	ctx, span := otlp.Start(ctx, userServiceName, userSpanRepoPrefix+"ListDeletedUsers")
+	defer span.End()
+
 	var users []*entity.User
 
 	queryBuilder := p.userSelectQueryPrefixAdmin()
@@ -233,6 +246,9 @@ func (p userRepo) ListDeletedUsers(ctx context.Context, limit, offset int64) ([]
 }
 
 func (p userRepo) Update(ctx context.Context, user *entity.User) (*entity.User, error) {
+	ctx, span := otlp.Start(ctx, userServiceName, userSpanRepoPrefix+"Update")
+	defer span.End()
+
 	DOB, err := time.Parse("2006-01-02", user.DateOfBirth)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse date of birth: %v", err)
@@ -268,6 +284,21 @@ func (p userRepo) Update(ctx context.Context, user *entity.User) (*entity.User, 
 }
 
 func (p userRepo) SoftDelete(ctx context.Context, id string) error {
+	ctx, span := otlp.Start(ctx, userServiceName, userSpanRepoPrefix+"Delete")
+	defer span.End()
+
+	var deletedAt sql.NullTime
+	err := p.db.QueryRow(ctx, "SELECT deleted_at FROM " +p.userTableName+ " WHERE id = $1", id).Scan(&deletedAt)
+	if err != nil {
+        if err == sql.ErrNoRows {
+            return fmt.Errorf("%s: not found", id)
+        }
+        return fmt.Errorf("failed to query user: %v", err)
+    }
+    if deletedAt.Valid && !deletedAt.Time.IsZero() {
+        return fmt.Errorf("%s: is already soft-deleted", id)
+    }
+
 	clauses := map[string]interface{}{
 		"deleted_at": time.Now().Format("2006-01-02T15:04:05"),
 	}
@@ -293,6 +324,9 @@ func (p userRepo) SoftDelete(ctx context.Context, id string) error {
 }
 
 func (p userRepo) UserEstablishmentCreate(ctx context.Context, user_id, establishment_id string) (string, string, error) {
+	ctx, span := otlp.Start(ctx, userServiceName, userSpanRepoPrefix+"UECreate")
+	defer span.End()
+
 	sqlStr, args, err := p.db.Sq.Builder.Insert(p.userEstablishmentTableName).
         Columns("user_id", "establishment_id").
         Values(user_id, establishment_id).
@@ -314,6 +348,9 @@ func (p userRepo) UserEstablishmentCreate(ctx context.Context, user_id, establis
 }
 
 func (p userRepo) UserEstablishmentGet(ctx context.Context, params map[string]string) (*entity.User, string, error) {
+	ctx, span := otlp.Start(ctx, userServiceName, userSpanRepoPrefix+"UEGet")
+	defer span.End()
+
 	var user entity.User
 	var user_id = params["user_id"]
 	var establishment_id = params["establishment_id"]
@@ -366,6 +403,9 @@ func (p userRepo) UserEstablishmentGet(ctx context.Context, params map[string]st
 }
 
 func (p userRepo) UserEstablishmentDelete(ctx context.Context, params map[string]string) error {
+	ctx, span := otlp.Start(ctx, userServiceName, userSpanRepoPrefix+"UEDelete")
+	defer span.End()
+
 	sqlStr, args, err := p.db.Sq.Builder.Delete(p.userEstablishmentTableName).
         Where(p.db.Sq.Equal("user_id", params["user_id"]), p.db.Sq.Equal("establishment_id", params["establishment_id"])).
         ToSql()
@@ -383,4 +423,54 @@ func (p userRepo) UserEstablishmentDelete(ctx context.Context, params map[string
     }
     
     return nil
+}
+
+func (p userRepo) CheckUniquess(ctx context.Context, field, value string) (int32, error) {
+	ctx, span := otlp.Start(ctx, userServiceName, userSpanRepoPrefix+"CheckUniquess")
+	defer span.End()
+
+	var code int32
+	sqlStr, args, err := p.db.Sq.Builder.Select("COUNT(*)").From(p.userTableName).Where(p.db.Sq.Equal(field, value)).Where(p.db.Sq.Equal("deleted_at", nil)).ToSql()
+	if err!= nil {
+        return code, fmt.Errorf("failed to build SQL query for check uniquess: %v", err)
+    }
+	row := p.db.QueryRow(ctx, sqlStr, args...)
+	if err = row.Scan(&code); err!= nil {
+        return code, fmt.Errorf("failed to scan row while check uniquess: %v", err)
+    }
+	return code, nil
+}
+
+func (p userRepo) Exists(ctx context.Context, field, value string) (*entity.User, error) {
+	ctx, span := otlp.Start(ctx, userServiceName, userSpanRepoPrefix+"Exists")
+	defer span.End()
+
+	var user entity.User
+	queryBuilder := p.userSelectQueryPrefix()
+	sqlStr, args, err := queryBuilder.Where(p.db.Sq.Equal(field, value)).Where(p.db.Sq.Equal("deleted_at", nil)).ToSql()
+	if err!= nil {
+        return &user, fmt.Errorf("failed to build SQL query for exists: %v", err)
+    }
+	row := p.db.QueryRow(ctx, sqlStr, args...)
+	if err = row.Scan(
+			&user.Id,
+			&user.FullName,
+			&user.Email,
+			&user.Password,
+			&user.DateOfBirth,
+			&user.ProfileImg,
+			&user.Card,
+			&user.Gender,
+			&user.PhoneNumber,
+			&user.Role,
+			&user.RefreshToken,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+		); err!= nil {
+			if err == sql.ErrNoRows {
+				return nil, nil
+			}
+			return nil, fmt.Errorf("failed to scan row while checking existence: %v", err)
+		}
+	return &user, nil
 }
