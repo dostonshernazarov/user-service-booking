@@ -30,6 +30,10 @@ type Config struct {
 			UserService string
 		}
 	}
+	OTLPCollector struct {
+		Host string
+		Port string
+	}
 }
 
 func New() *Config {
@@ -53,6 +57,10 @@ func New() *Config {
 	// kafka configuration
 	config.Kafka.Address = strings.Split(getEnv("KAFKA_ADDRESS", "localhost:29092"), ",")
 	config.Kafka.Topic.UserService = getEnv("KAFKA_TOPIC_USER_SERVICE", "user.service")
+
+	// otlp collector configuration
+	config.OTLPCollector.Host = getEnv("OTLP_COLLECTOR_HOST", "localhost")
+	config.OTLPCollector.Port = getEnv("OTLP_COLLECTOR_PORT", ":4317")
 
 	return &config
 }

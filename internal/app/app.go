@@ -1,8 +1,6 @@
 package app
 
 import (
-	"fmt"
-	"time"
 	pb "Booking/user-service-booking/genproto/user-proto"
 	grpc_server "Booking/user-service-booking/internal/delivery/grpc/server"
 	invest_grpc "Booking/user-service-booking/internal/delivery/grpc/services"
@@ -11,9 +9,12 @@ import (
 	repo "Booking/user-service-booking/internal/infrastructure/repository/postgresql"
 	"Booking/user-service-booking/internal/pkg/config"
 	"Booking/user-service-booking/internal/pkg/logger"
+	"Booking/user-service-booking/internal/pkg/otlp"
 	"Booking/user-service-booking/internal/pkg/postgres"
 	"Booking/user-service-booking/internal/usecase"
 	"Booking/user-service-booking/internal/usecase/event"
+	"fmt"
+	"time"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
@@ -29,6 +30,7 @@ type App struct {
 	DB             *postgres.PostgresDB
 	GrpcServer     *grpc.Server
 	UserUsecase	   usecase.User
+	ShutdownOTLP   func() error
 	ServiceClients grpc_service_clients.ServiceClients
 	BrokerProducer event.BrokerProducer
 }
@@ -44,6 +46,12 @@ func NewApp(cfg *config.Config) (*App, error) {
 
 	// init db
 	db, err := postgres.New(cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	// otlp collector initialization
+	shutdownOTLP, err := otlp.InitOTLPProvider(cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -70,6 +78,7 @@ func NewApp(cfg *config.Config) (*App, error) {
 		Logger:         logger,
 		DB:             db,
 		GrpcServer:     grpcServer,
+		ShutdownOTLP:   shutdownOTLP,
 		BrokerProducer: kafkaProducer,
 	}, nil
 }
@@ -117,6 +126,11 @@ func (a *App) Stop() {
 
 	// database connection
 	a.DB.Close()
+
+	// shutdown otlp collector
+	if err := a.ShutdownOTLP(); err != nil {
+		a.Logger.Error("shutdown otlp collector", zap.Error(err))
+	}
 
 	// zap logger sync
 	a.Logger.Sync()
