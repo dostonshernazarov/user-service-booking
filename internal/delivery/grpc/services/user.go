@@ -30,7 +30,7 @@ func NewRPC(logger *zap.Logger, userUsecase usecase.User, brokerProducer event.B
 func (s userRPC) Create(ctx context.Context, req *pb.User) (*pb.User, error) {
     ctx, span := otlp.Start(ctx, "Delivery", "Create")
     span.SetAttributes(
-      attribute.Key("deliveryCreateId").String(req.Id),
+      attribute.Key("CreatedId").String(req.Id),
     )
     defer span.End()
 	
@@ -62,13 +62,14 @@ func (s userRPC) Create(ctx context.Context, req *pb.User) (*pb.User, error) {
 		PhoneNumber:    createdUser.PhoneNumber,
 		Role:           createdUser.Role,
 		RefreshToken:   createdUser.RefreshToken,
+		CreatedAt: 		createdUser.CreatedAt.Format("2006-01-02T15:04:05"),
     }, nil
 }
 
 func (s userRPC) Get(ctx context.Context, filter *pb.Filter) (*pb.GetUser, error) {
     ctx, span := otlp.Start(ctx, "Delivery", "Get")
     span.SetAttributes(
-      attribute.Key("deliveryGetId").String(filter.Filter["id"]),
+      attribute.Key("GetById").String(filter.Filter["id"]),
     )
     defer span.End()
 	
@@ -91,7 +92,6 @@ func (s userRPC) Get(ctx context.Context, filter *pb.Filter) (*pb.GetUser, error
 			Role:			filterUser.Role,
 			RefreshToken:	filterUser.RefreshToken,
 			CreatedAt:		filterUser.CreatedAt.Format("2006-01-02T15:04:05Z"),
-			UpdatedAt:		filterUser.UpdatedAt.Format("2006-01-02T15:04:05Z"),
 		},
 	}
 
@@ -101,8 +101,8 @@ func (s userRPC) Get(ctx context.Context, filter *pb.Filter) (*pb.GetUser, error
 func (s userRPC) ListUsers(ctx context.Context, req *pb.ListUsersReq) (*pb.ListUsersRes, error) {
 	ctx, span := otlp.Start(ctx, "Delivery", "ListUsers")
     span.SetAttributes(
-      attribute.Key("deliveryListLimit").String(fmt.Sprint(req.Limit)),
-      attribute.Key("deliveryListOffset").String(fmt.Sprint(req.Offset)),
+      attribute.Key("Limit").String(fmt.Sprint(req.Limit)),
+      attribute.Key("Offset").String(fmt.Sprint(req.Offset)),
     )
     defer span.End()
 	
@@ -136,8 +136,8 @@ func (s userRPC) ListUsers(ctx context.Context, req *pb.ListUsersReq) (*pb.ListU
 func (s userRPC) ListDeletedUsers(ctx context.Context, req *pb.ListUsersReq) (*pb.ListUsersRes, error) {
 	ctx, span := otlp.Start(ctx, "Delivery", "ListDeletedUsers")
     span.SetAttributes(
-      attribute.Key("deliveryListDeletedLimit").String(fmt.Sprint(req.Limit)),
-      attribute.Key("deliveryListDeletedOffset").String(fmt.Sprint(req.Offset)),
+      attribute.Key("Limit").String(fmt.Sprint(req.Limit)),
+      attribute.Key("Offset").String(fmt.Sprint(req.Offset)),
     )
     defer span.End()
 	
@@ -172,7 +172,7 @@ func (s userRPC) ListDeletedUsers(ctx context.Context, req *pb.ListUsersReq) (*p
 func (s userRPC) Update(ctx context.Context, req *pb.User) (*pb.User, error) {
 	ctx, span := otlp.Start(ctx, "Delivery", "Update")
     span.SetAttributes(
-      attribute.Key("deliveryUpdateId").String(fmt.Sprint(req.Id)),
+      attribute.Key("UpdateById").String(fmt.Sprint(req.Id)),
     )
     defer span.End()
 	
@@ -204,13 +204,14 @@ func (s userRPC) Update(ctx context.Context, req *pb.User) (*pb.User, error) {
 		PhoneNumber:    updatedUser.PhoneNumber,
 		Role:           updatedUser.Role,
 		RefreshToken:   updatedUser.RefreshToken,
+		CreatedAt: 		updatedUser.CreatedAt.Format("2006-01-02T15:04:05"),
     }, nil
 }
 
 func (s userRPC) SoftDelete(ctx context.Context, req *pb.Id) (*pb.DelRes, error) {
 	ctx, span := otlp.Start(ctx, "Delivery", "Delete")
     span.SetAttributes(
-      attribute.Key("deliveryDeleteId").String(fmt.Sprint(req.Id)),
+      attribute.Key("DeleteById").String(fmt.Sprint(req.Id)),
     )
     defer span.End()
 	
@@ -224,8 +225,8 @@ func (s userRPC) SoftDelete(ctx context.Context, req *pb.Id) (*pb.DelRes, error)
 func (s userRPC) UserEstablishmentCreate(ctx context.Context, req *pb.UE) (*pb.UE, error) {
 	ctx, span := otlp.Start(ctx, "Delivery", "UECreate")
     span.SetAttributes(
-      attribute.Key("deliveryUECreateUId").String(fmt.Sprint(req.UserId)),
-      attribute.Key("deliveryUECreateEId").String(fmt.Sprint(req.EstablishmentId)),
+      attribute.Key("UECreatedUId").String(fmt.Sprint(req.UserId)),
+      attribute.Key("UECreatedEId").String(fmt.Sprint(req.EstablishmentId)),
     )
     defer span.End()
 	
@@ -242,8 +243,8 @@ func (s userRPC) UserEstablishmentCreate(ctx context.Context, req *pb.UE) (*pb.U
 func (s userRPC) UserEstablishmentGet(ctx context.Context, req *pb.Filter) (*pb.UEwU, error) {
 	ctx, span := otlp.Start(ctx, "Delivery", "UEGet")
     span.SetAttributes(
-      attribute.Key("deliveryUEGetUId").String(fmt.Sprint(req.Filter["user_id"])),
-      attribute.Key("deliveryUEGetEId").String(fmt.Sprint(req.Filter["establishment_id"])),
+      attribute.Key("UEGetByUId").String(fmt.Sprint(req.Filter["user_id"])),
+      attribute.Key("UEGetByEId").String(fmt.Sprint(req.Filter["establishment_id"])),
     )
     defer span.End()
 	
@@ -274,8 +275,8 @@ func (s userRPC) UserEstablishmentGet(ctx context.Context, req *pb.Filter) (*pb.
 func (s userRPC) UserEstablishmentDelete(ctx context.Context, req *pb.Filter) (*pb.DelRes, error) {
 	ctx, span := otlp.Start(ctx, "Delivery", "UEDelete")
     span.SetAttributes(
-      attribute.Key("deliveryUEDeleteUId").String(fmt.Sprint(req.Filter["user_id"])),
-      attribute.Key("deliveryUEDeleteEId").String(fmt.Sprint(req.Filter["establishment_id"])),
+      attribute.Key("UEDeleteByUId").String(fmt.Sprint(req.Filter["user_id"])),
+      attribute.Key("UEDeleteByEId").String(fmt.Sprint(req.Filter["establishment_id"])),
     )
     defer span.End()
 	
@@ -289,8 +290,8 @@ func (s userRPC) UserEstablishmentDelete(ctx context.Context, req *pb.Filter) (*
 func (s userRPC) CheckUniquess(ctx context.Context, req *pb.FV) (*pb.Status, error) {
 	ctx, span := otlp.Start(ctx, "Delivery", "CheckUniquess")
     span.SetAttributes(
-      attribute.Key("deliveryCheckUniquessField").String(fmt.Sprint(req.Field)),
-      attribute.Key("deliveryCheckUniquessValue").String(fmt.Sprint(req.Value)),
+      attribute.Key("Field").String(fmt.Sprint(req.Field)),
+      attribute.Key("Value").String(fmt.Sprint(req.Value)),
     )
     defer span.End()
     
@@ -306,8 +307,8 @@ func (s userRPC) CheckUniquess(ctx context.Context, req *pb.FV) (*pb.Status, err
 func (s userRPC) Exists(ctx context.Context, req *pb.FV) (*pb.User, error) {
 	ctx, span := otlp.Start(ctx, "Delivery", "Exists")
 	span.SetAttributes(
-      attribute.Key("deliveryExistsField").String(fmt.Sprint(req.Field)),
-      attribute.Key("deliveryExistsValue").String(fmt.Sprint(req.Value)),
+      attribute.Key("Field").String(fmt.Sprint(req.Field)),
+      attribute.Key("Value").String(fmt.Sprint(req.Value)),
     )
 	defer span.End()
 
@@ -328,6 +329,5 @@ func (s userRPC) Exists(ctx context.Context, req *pb.FV) (*pb.User, error) {
         Role:           user.Role,
         RefreshToken:   user.RefreshToken,
         CreatedAt:      user.CreatedAt.Format("2006-01-02T15:04:05Z"),
-        UpdatedAt:      user.UpdatedAt.Format("2006-01-02T15:04:05Z"),
     }, nil
 }

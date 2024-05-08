@@ -91,7 +91,6 @@ func (p userRepo) Create(ctx context.Context, user *entity.User) (*entity.User, 
 		"role":            user.Role,
 		"refresh_token":   user.RefreshToken,
 		"created_at":      user.CreatedAt,
-		"updated_at":      user.UpdatedAt,
 	}
 	query, args, err := p.db.Sq.Builder.Insert(p.userTableName).SetMap(data).ToSql()
 	if err != nil {
@@ -265,7 +264,8 @@ func (p userRepo) Update(ctx context.Context, user *entity.User) (*entity.User, 
 	}
 	sqlStr, args, err := p.db.Sq.Builder.Update(p.userTableName).
 		SetMap(clauses).
-		Where(p.db.Sq.Equal("id", user.Id), p.db.Sq.Equal("deleted_at", nil)).
+		Where(p.db.Sq.Equal("id", user.Id)).
+		Where(p.db.Sq.Equal("deleted_at", nil)).
 		ToSql()
 	if err != nil {
 		return user, fmt.Errorf("failed to build SQL query for updating user: %v", err)
