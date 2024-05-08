@@ -1,3 +1,0 @@
-2024-05-08T19:16:59.447+0500	INFO	app/app.go:110	gRPC Server Listening	{"url": ":50025"}
-2024-05-08T19:17:13.195+0500	INFO	zap/options.go:212	finished unary call with code OK	{"grpc.start_time": "2024-05-08T19:17:13+05:00", "grpc.request.deadline": "2178-02-09T07:25:13+05:00", "system": "grpc", "span.kind": "server", "grpc.service": "user.UserService", "grpc.method": "UserEstablishmentCreate", "peer.address": "127.0.0.1:55938", "grpc.code": "OK", "grpc.time_ms": 5.542}
-2024-05-08T19:33:28.334+0500	INFO	app/main.go:36	User service stops !

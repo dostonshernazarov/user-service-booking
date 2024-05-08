@@ -352,7 +352,6 @@ func (p userRepo) UserEstablishmentGet(ctx context.Context, params map[string]st
 	defer span.End()
 
 	var user entity.User
-	var user_id = params["user_id"]
 	var establishment_id = params["establishment_id"]
 	queryBuilder := p.userSelectQueryPrefix()
 	for key, value := range params {
@@ -363,7 +362,6 @@ func (p userRepo) UserEstablishmentGet(ctx context.Context, params map[string]st
 	}
     sqlStr, args, err := queryBuilder.
         Join(p.userEstablishmentTableName + " ON " + p.userTableName + ".id = " + p.userEstablishmentTableName + ".user_id").
-        Where(p.db.Sq.Equal("users_establishment.user_id", user_id)).
 		Where(p.db.Sq.Equal("users_establishment.establishment_id", establishment_id)).
         ToSql()
     if err!= nil {
