@@ -117,6 +117,12 @@ func (p userRepo) Get(ctx context.Context, params map[string]string) (*entity.Us
 		if key == "id" {
 			queryBuilder = queryBuilder.Where(p.db.Sq.Equal(key, value))
 		}
+		if key == "email" {
+            queryBuilder = queryBuilder.Where(p.db.Sq.Equal(key, value))
+        }
+		if key == "phone_number" {
+            queryBuilder = queryBuilder.Where(p.db.Sq.Equal(key, value))
+        }
     	queryBuilder = queryBuilder.Where(p.db.Sq.Equal("deleted_at", nil))
 	}
 
@@ -404,23 +410,24 @@ func (p userRepo) UserEstablishmentDelete(ctx context.Context, params map[string
 	ctx, span := otlp.Start(ctx, userServiceName, userSpanRepoPrefix+"UEDelete")
 	defer span.End()
 
-	sqlStr, args, err := p.db.Sq.Builder.Delete(p.userEstablishmentTableName).
-        Where(p.db.Sq.Equal("user_id", params["user_id"]), p.db.Sq.Equal("establishment_id", params["establishment_id"])).
-        ToSql()
-    if err!= nil {
-        return fmt.Errorf("failed to build SQL query for user establishment: %v", err)
-    }
+	sqlBuilder := p.db.Sq.Builder.Delete(p.userEstablishmentTableName).
+        Where(p.db.Sq.Equal("establishment_id", params["establishment_id"]))
 
-    commandTag, err := p.db.Exec(ctx, sqlStr, args...)
-    if err!= nil {
-        return fmt.Errorf("failed to execute SQL query for user establishment: %v", err)
-    }
+	sqlStr, args, err := sqlBuilder.ToSql()
+	if err != nil {
+		return fmt.Errorf("failed to build SQL query for soft deleting user: %v", err)
+	}
+	println(params["establishment_id"])
+	commandTag, err := p.db.Exec(ctx, sqlStr, args...)
+	if err != nil {
+		return fmt.Errorf("failed to execute SQL query for soft deleting user: %v", err)
+	}
 
-    if commandTag.RowsAffected() == 0 {
-        return fmt.Errorf("no rows affected while user establishment")
-    }
-    
-    return nil
+	if commandTag.RowsAffected() == 0 {
+		return fmt.Errorf("no rows affected while soft deleting user")
+	}
+
+	return nil
 }
 
 func (p userRepo) CheckUniquess(ctx context.Context, field, value string) (int32, error) {
