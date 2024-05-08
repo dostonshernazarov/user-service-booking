@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS users (
     id UUID NOT NULL,
     full_name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     date_of_birth DATE,
     profile_img VARCHAR(255),
