@@ -125,13 +125,25 @@ func (p userRepo) Get(ctx context.Context, params map[string]string) (*entity.Us
 		if key == "id" {
 			queryBuilder = queryBuilder.Where(p.db.Sq.Equal(key, value))
 		}
+		if key == "email" {
+			queryBuilder = queryBuilder.Where(p.db.Sq.Equal(key, value))
+		}
+		if key == "phone_number" {
+			queryBuilder = queryBuilder.Where(p.db.Sq.Equal(key, value))
+		}
+		
+
 		queryBuilder = queryBuilder.Where(p.db.Sq.Equal("deleted_at", nil))
 	}
+
+	
 
 	query, args, err := queryBuilder.ToSql()
 	if err != nil {
 		return nil, fmt.Errorf("failed to build SQL query for getting user: %v", err)
 	}
+
+	// println("\n\n", query, "\n\n")
 	if err = p.db.QueryRow(ctx, query, args...).Scan(
 		&user.Id,
 		&user.FullName,
