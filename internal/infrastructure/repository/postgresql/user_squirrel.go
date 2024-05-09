@@ -86,19 +86,19 @@ func (p userRepo) Create(ctx context.Context, user *entity.User) (*entity.User, 
 	}
 
 	data := map[string]interface{}{
-		"id":            user.Id,
-		"full_name":     user.FullName,
-		"email":         user.Email,
-		"password":      user.Password,
-		"date_of_birth": DOB,
-		"profile_img":   user.ProfileImg,
-		"card":          user.Card,
-		"gender":        user.Gender,
-		"phone_number":  user.PhoneNumber,
-		"role":          user.Role,
-		"refresh_token": user.RefreshToken,
-		"created_at":    user.CreatedAt,
-		"updated_at":    user.UpdatedAt,
+		"id":              user.Id,
+		"full_name":       user.FullName,
+		"email":           user.Email,
+		"password":        user.Password,
+		"date_of_birth":   DOB,
+		"profile_img":     user.ProfileImg,
+		"card":            user.Card,
+		"gender":          user.Gender,
+		"phone_number":    user.PhoneNumber,
+		"role":            user.Role,
+		"refresh_token":   user.RefreshToken,
+		"created_at":      user.CreatedAt,
+		"updated_at":      user.UpdatedAt,
 	}
 	query, args, err := p.db.Sq.Builder.Insert(p.userTableName).SetMap(data).ToSql()
 	if err != nil {
@@ -125,15 +125,7 @@ func (p userRepo) Get(ctx context.Context, params map[string]string) (*entity.Us
 		if key == "id" {
 			queryBuilder = queryBuilder.Where(p.db.Sq.Equal(key, value))
 		}
-		if key == "email" {
-			queryBuilder = queryBuilder.Where(p.db.Sq.Equal(key, value))
-		}
-		if key == "phone_number" {
-			queryBuilder = queryBuilder.Where(p.db.Sq.Equal(key, value))
-		}
-		
-
-		queryBuilder = queryBuilder.Where(p.db.Sq.Equal("deleted_at", nil))
+    	queryBuilder = queryBuilder.Where(p.db.Sq.Equal("deleted_at", nil))
 	}
 
 	
@@ -284,7 +276,8 @@ func (p userRepo) Update(ctx context.Context, user *entity.User) (*entity.User, 
 	}
 	sqlStr, args, err := p.db.Sq.Builder.Update(p.userTableName).
 		SetMap(clauses).
-		Where(p.db.Sq.Equal("id", user.Id), p.db.Sq.Equal("deleted_at", nil)).
+		Where(p.db.Sq.Equal("id", user.Id)).
+		Where(p.db.Sq.Equal("deleted_at", nil)).
 		ToSql()
 	if err != nil {
 		return user, fmt.Errorf("failed to build SQL query for updating user: %v", err)
@@ -371,7 +364,6 @@ func (p userRepo) UserEstablishmentGet(ctx context.Context, params map[string]st
 	defer span.End()
 
 	var user entity.User
-	var user_id = params["user_id"]
 	var establishment_id = params["establishment_id"]
 	queryBuilder := p.userSelectQueryPrefix()
 	for key, value := range params {
@@ -380,9 +372,9 @@ func (p userRepo) UserEstablishmentGet(ctx context.Context, params map[string]st
 		}
 		queryBuilder = queryBuilder.Where(p.db.Sq.Equal("deleted_at", nil))
 	}
-	sqlStr, args, err := queryBuilder.
-		Join(p.userEstablishmentTableName + " ON " + p.userTableName + ".id = " + p.userEstablishmentTableName + ".user_id").
-		Where(p.db.Sq.Equal("users_establishment.user_id", user_id)).
+    sqlStr, args, err := queryBuilder.
+        Join(p.userEstablishmentTableName + " ON " + p.userTableName + ".id = " + p.userEstablishmentTableName + ".user_id").
+        Where(p.db.Sq.Equal("users_establishment.user_id", user_id)).
 		Where(p.db.Sq.Equal("users_establishment.establishment_id", establishment_id)).
 		ToSql()
 	if err != nil {
@@ -426,22 +418,22 @@ func (p userRepo) UserEstablishmentDelete(ctx context.Context, params map[string
 	defer span.End()
 
 	sqlStr, args, err := p.db.Sq.Builder.Delete(p.userEstablishmentTableName).
-		Where(p.db.Sq.Equal("user_id", params["user_id"]), p.db.Sq.Equal("establishment_id", params["establishment_id"])).
-		ToSql()
-	if err != nil {
-		return fmt.Errorf("failed to build SQL query for user establishment: %v", err)
-	}
+        Where(p.db.Sq.Equal("user_id", params["user_id"]), p.db.Sq.Equal("establishment_id", params["establishment_id"])).
+        ToSql()
+    if err!= nil {
+        return fmt.Errorf("failed to build SQL query for user establishment: %v", err)
+    }
 
-	commandTag, err := p.db.Exec(ctx, sqlStr, args...)
-	if err != nil {
-		return fmt.Errorf("failed to execute SQL query for user establishment: %v", err)
-	}
+    commandTag, err := p.db.Exec(ctx, sqlStr, args...)
+    if err!= nil {
+        return fmt.Errorf("failed to execute SQL query for user establishment: %v", err)
+    }
 
-	if commandTag.RowsAffected() == 0 {
-		return fmt.Errorf("no rows affected while user establishment")
-	}
-
-	return nil
+    if commandTag.RowsAffected() == 0 {
+        return fmt.Errorf("no rows affected while user establishment")
+    }
+    
+    return nil
 }
 
 func (p userRepo) CheckUniquess(ctx context.Context, field, value string) (int32, error) {
