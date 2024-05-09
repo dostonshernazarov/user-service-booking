@@ -51,6 +51,12 @@ func (p *userRepo) userSelectQueryPrefix() squirrel.SelectBuilder {
 	).From(p.userTableName)
 }
 
+func (p *userRepo) userSelectQueryPrefixCount() squirrel.SelectBuilder {
+	return p.db.Sq.Builder.Select(
+		"COUNT(*) AS count",
+	).From(p.userTableName)
+}
+
 func (p *userRepo) userSelectQueryPrefixAdmin() squirrel.SelectBuilder {
 	return p.db.Sq.Builder.Select(
 		"id",
@@ -161,11 +167,14 @@ func (p userRepo) Get(ctx context.Context, params map[string]string) (*entity.Us
 	return &user, nil
 }
 
-func (p userRepo) ListUsers(ctx context.Context, limit, offset int64) ([]*entity.User, error) {
+func (p userRepo) ListUsers(ctx context.Context, limit, offset int64) ([]*entity.User, int64, error) {
 	ctx, span := otlp.Start(ctx, userServiceName, userSpanRepoPrefix+"ListUsers")
 	defer span.End()
 
-	var users []*entity.User
+	var (
+		users []*entity.User
+		count int64
+	)
 
 	queryBuilder := p.userSelectQueryPrefix()
 
@@ -177,12 +186,12 @@ func (p userRepo) ListUsers(ctx context.Context, limit, offset int64) ([]*entity
 
 	query, args, err := queryBuilder.ToSql()
 	if err != nil {
-		return nil, fmt.Errorf("failed to build SQL query for listing users: %v", err)
+		return nil, 0, fmt.Errorf("failed to build SQL query for listing users: %v", err)
 	}
 
 	rows, err := p.db.Query(ctx, query, args...)
 	if err != nil {
-		return nil, fmt.Errorf("failed to execute SQL query for listing users: %v", err)
+		return nil, 0, fmt.Errorf("failed to execute SQL query for listing users: %v", err)
 	}
 	defer rows.Close()
 	users = make([]*entity.User, 0)
@@ -203,21 +212,32 @@ func (p userRepo) ListUsers(ctx context.Context, limit, offset int64) ([]*entity
 			&user.CreatedAt,
 			&user.UpdatedAt,
 		); err != nil {
-			return nil, fmt.Errorf("failed to scan row while listing users: %v", err)
+			return nil, 0, fmt.Errorf("failed to scan row while listing users: %v", err)
 		}
 		users = append(users, &user)
 	}
 
-	
+	queryCount := p.userSelectQueryPrefixCount()
+	query, args, err = queryCount.Where(p.db.Sq.Equal("deleted_at", nil)).ToSql()
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to build SQL query for counting users: %v", err)
+	}
+	row := p.db.QueryRow(ctx, query, args...)
+	if err = row.Scan(&count); err!= nil {
+        return nil, 0, fmt.Errorf("failed to scan row while counting users: %v", err)
+    }
 
-	return users, nil
+	return users, count, nil
 }
 
-func (p userRepo) ListDeletedUsers(ctx context.Context, limit, offset int64) ([]*entity.User, error) {
+func (p userRepo) ListDeletedUsers(ctx context.Context, limit, offset int64) ([]*entity.User, int64, error) {
 	ctx, span := otlp.Start(ctx, userServiceName, userSpanRepoPrefix+"ListDeletedUsers")
 	defer span.End()
 
-	var users []*entity.User
+	var (
+		users []*entity.User
+		count int64
+	)
 
 	queryBuilder := p.userSelectQueryPrefixAdmin()
 
@@ -228,12 +248,12 @@ func (p userRepo) ListDeletedUsers(ctx context.Context, limit, offset int64) ([]
 	queryBuilder = queryBuilder.Where(p.db.Sq.NotEqual("deleted_at", nil))
 	query, args, err := queryBuilder.ToSql()
 	if err != nil {
-		return nil, fmt.Errorf("failed to build SQL query for listing all users: %v", err)
+		return nil, 0, fmt.Errorf("failed to build SQL query for listing all users: %v", err)
 	}
 
 	rows, err := p.db.Query(ctx, query, args...)
 	if err != nil {
-		return nil, fmt.Errorf("failed to execute SQL query for listing all users: %v", err)
+		return nil, 0, fmt.Errorf("failed to execute SQL query for listing all users: %v", err)
 	}
 	defer rows.Close()
 	for rows.Next() {
@@ -254,12 +274,22 @@ func (p userRepo) ListDeletedUsers(ctx context.Context, limit, offset int64) ([]
 			&user.UpdatedAt,
 			&user.DeletedAt,
 		); err != nil {
-			return nil, fmt.Errorf("failed to scan row while listing all users: %v", err)
+			return nil, 0, fmt.Errorf("failed to scan row while listing all users: %v", err)
 		}
 		users = append(users, &user)
 	}
 
-	return users, nil
+	queryCount := p.userSelectQueryPrefixCount()
+	query, args, err = queryCount.Where(p.db.Sq.NotEqual("deleted_at", nil)).ToSql()
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to build SQL query for counting users: %v", err)
+	}
+	row := p.db.QueryRow(ctx, query, args...)
+	if err = row.Scan(&count); err!= nil {
+        return nil, 0, fmt.Errorf("failed to scan row while counting users: %v", err)
+    }
+
+	return users, count, nil
 }
 
 func (p userRepo) Update(ctx context.Context, user *entity.User) (*entity.User, error) {

@@ -113,16 +113,18 @@ func TestUserPostgres(t *testing.T) {
 	assert.Equal(t, user.RefreshToken, getUser.RefreshToken)
 
 	// Test Method ListUsers
-	listedUsers, err := repo.ListUsers(ctx, 0, 0)
+	listedUsers, count, err := repo.ListUsers(ctx, 0, 0)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, listedUsers)
+	assert.NotNil(t, count)
 
 	// Test Method SoftDelete User BY ID
 	err = repo.SoftDelete(ctx, user.Id)
 	assert.NoError(t, err)
 
 	// Test Method Get All Users
-	Users, err := repo.ListDeletedUsers(ctx, 0, 0)
+	Users, count, err := repo.ListDeletedUsers(ctx, 0, 0)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, Users)
+	assert.NotNil(t, count)
 }
