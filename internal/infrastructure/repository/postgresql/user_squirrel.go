@@ -229,7 +229,7 @@ func (p userRepo) ListUsers(ctx context.Context, limit, offset int64, field, val
 	return users, count, nil
 }
 
-func (p userRepo) ListDeletedUsers(ctx context.Context, limit, offset int64) ([]*entity.User, int64, error) {
+func (p userRepo) ListDeletedUsers(ctx context.Context, limit, offset int64, field, value string) ([]*entity.User, int64, error) {
 	ctx, span := otlp.Start(ctx, userServiceName, userSpanRepoPrefix+"ListDeletedUsers")
 	defer span.End()
 
@@ -244,7 +244,7 @@ func (p userRepo) ListDeletedUsers(ctx context.Context, limit, offset int64) ([]
 		queryBuilder = queryBuilder.Limit(uint64(limit)).Offset(uint64(offset))
 	}
 
-	queryBuilder = queryBuilder.Where(p.db.Sq.NotEqual("deleted_at", nil))
+	queryBuilder = queryBuilder.Where(p.db.Sq.NotEqual("deleted_at", nil)).Where(p.db.Sq.ILike(field, "%"+value+"%"))
 	query, args, err := queryBuilder.ToSql()
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to build SQL query for listing all users: %v", err)

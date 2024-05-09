@@ -123,7 +123,7 @@ func TestUserPostgres(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Test Method Get All Users
-	Users, count, err := repo.ListDeletedUsers(ctx, 0, 0)
+	Users, count, err := repo.ListDeletedUsers(ctx, 0, 0, "id", "")
 	assert.NoError(t, err)
 	assert.NotEmpty(t, Users)
 	assert.NotNil(t, count)
