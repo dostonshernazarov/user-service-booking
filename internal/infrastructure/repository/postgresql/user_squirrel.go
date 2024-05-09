@@ -167,7 +167,7 @@ func (p userRepo) Get(ctx context.Context, params map[string]string) (*entity.Us
 	return &user, nil
 }
 
-func (p userRepo) ListUsers(ctx context.Context, limit, offset int64) ([]*entity.User, int64, error) {
+func (p userRepo) ListUsers(ctx context.Context, limit, offset int64, field, value string) ([]*entity.User, int64, error) {
 	ctx, span := otlp.Start(ctx, userServiceName, userSpanRepoPrefix+"ListUsers")
 	defer span.End()
 
@@ -182,8 +182,7 @@ func (p userRepo) ListUsers(ctx context.Context, limit, offset int64) ([]*entity
 		queryBuilder = queryBuilder.Limit(uint64(limit)).Offset(uint64(offset))
 	}
 
-	queryBuilder = queryBuilder.Where(p.db.Sq.Equal("deleted_at", nil))
-
+	queryBuilder = queryBuilder.Where(p.db.Sq.Equal("deleted_at", nil)).Where(p.db.Sq.ILike(field, "%"+value+"%"))
 	query, args, err := queryBuilder.ToSql()
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to build SQL query for listing users: %v", err)

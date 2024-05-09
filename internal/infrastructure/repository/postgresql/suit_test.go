@@ -113,7 +113,7 @@ func TestUserPostgres(t *testing.T) {
 	assert.Equal(t, user.RefreshToken, getUser.RefreshToken)
 
 	// Test Method ListUsers
-	listedUsers, count, err := repo.ListUsers(ctx, 0, 0)
+	listedUsers, count, err := repo.ListUsers(ctx, 0, 0, "id", "")
 	assert.NoError(t, err)
 	assert.NotEmpty(t, listedUsers)
 	assert.NotNil(t, count)
