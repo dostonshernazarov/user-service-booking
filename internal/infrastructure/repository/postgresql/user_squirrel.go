@@ -125,6 +125,10 @@ func (p userRepo) Get(ctx context.Context, params map[string]string) (*entity.Us
 		if key == "id" {
 			queryBuilder = queryBuilder.Where(p.db.Sq.Equal(key, value))
 		}
+		if key == "email" {
+			queryBuilder = queryBuilder.Where(p.db.Sq.Equal(key, value))
+		}
+
     	queryBuilder = queryBuilder.Where(p.db.Sq.Equal("deleted_at", nil))
 	}
 
@@ -203,6 +207,8 @@ func (p userRepo) ListUsers(ctx context.Context, limit, offset int64) ([]*entity
 		}
 		users = append(users, &user)
 	}
+
+	
 
 	return users, nil
 }
@@ -374,7 +380,7 @@ func (p userRepo) UserEstablishmentGet(ctx context.Context, params map[string]st
 	}
     sqlStr, args, err := queryBuilder.
         Join(p.userEstablishmentTableName + " ON " + p.userTableName + ".id = " + p.userEstablishmentTableName + ".user_id").
-        Where(p.db.Sq.Equal("users_establishment.user_id", user_id)).
+        // Where(p.db.Sq.Equal("users_establishment.user_id", user_id)).
 		Where(p.db.Sq.Equal("users_establishment.establishment_id", establishment_id)).
 		ToSql()
 	if err != nil {
