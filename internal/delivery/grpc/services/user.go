@@ -106,7 +106,7 @@ func (s userRPC) ListUsers(ctx context.Context, req *pb.ListUsersReq) (*pb.ListU
     )
     defer span.End()
 	
-	listedUsers, count, err := s.userUsecase.ListUsers(ctx, int64(req.Limit), int64(req.Offset))
+	listedUsers, count, err := s.userUsecase.ListUsers(ctx, int64(req.Limit), int64(req.Offset), req.Fv.Field, req.Fv.Value)
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +142,7 @@ func (s userRPC) ListDeletedUsers(ctx context.Context, req *pb.ListUsersReq) (*p
     )
     defer span.End()
 	
-	gotAllUsers, count, err := s.userUsecase.ListDeletedUsers(ctx, int64(req.Limit), int64(req.Offset))
+	gotAllUsers, count, err := s.userUsecase.ListDeletedUsers(ctx, int64(req.Limit), int64(req.Offset), req.Fv.Field, req.Fv.Value)
 	if err != nil {
 		return nil, err
 	}

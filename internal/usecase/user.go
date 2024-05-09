@@ -16,8 +16,8 @@ const (
 type User interface {
 	Create(ctx context.Context, user *entity.User) (*entity.User, error)
 	Get(ctx context.Context, params map[string]string) (*entity.User, error)
-	ListUsers(ctx context.Context, limit, offset int64) ([]*entity.User, int64, error)
-	ListDeletedUsers(ctx context.Context, limit, offset int64) ([]*entity.User, int64, error)
+	ListUsers(ctx context.Context, limit, offset int64, field, value string) ([]*entity.User, int64, error)
+	ListDeletedUsers(ctx context.Context, limit, offset int64, field, value string) ([]*entity.User, int64, error)
 	Update(ctx context.Context, user *entity.User) (*entity.User, error)
 	SoftDelete(ctx context.Context, id string) error
 
@@ -64,24 +64,24 @@ func (u UserService) Get(ctx context.Context, params map[string]string) (*entity
 	return u.repo.Get(ctx, params)
 }
 
-func (u UserService) ListUsers(ctx context.Context, limit, offset int64) ([]*entity.User, int64, error) {
+func (u UserService) ListUsers(ctx context.Context, limit, offset int64, field, value string) ([]*entity.User, int64, error) {
 	ctx, cancel := context.WithTimeout(ctx, u.ctxTimeout)
 	defer cancel()
 
 	ctx, span := otlp.Start(ctx, serviceNameUser, spanNameUser+"ListUsers")
 	defer span.End()
 
-	return u.repo.ListUsers(ctx, limit, offset)
+	return u.repo.ListUsers(ctx, limit, offset, field, value)
 }
 
-func (u UserService) ListDeletedUsers(ctx context.Context, limit, offset int64) ([]*entity.User, int64, error) {
+func (u UserService) ListDeletedUsers(ctx context.Context, limit, offset int64, field, value string) ([]*entity.User, int64, error) {
 	ctx, cancel := context.WithTimeout(ctx, u.ctxTimeout)
 	defer cancel()
 
 	ctx, span := otlp.Start(ctx, serviceNameUser, spanNameUser+"ListDeletedUsers")
 	defer span.End()
 
-	return u.repo.ListDeletedUsers(ctx, limit, offset)
+	return u.repo.ListDeletedUsers(ctx, limit, offset, field, value)
 }
 
 func (u UserService) Update(ctx context.Context, user *entity.User) (*entity.User, error) {
