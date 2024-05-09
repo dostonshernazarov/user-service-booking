@@ -14,38 +14,38 @@ import (
 )
 
 type userRPC struct {
-	logger                *zap.Logger
-	userUsecase           usecase.User
-	brokerProducer        event.BrokerProducer
+	logger         *zap.Logger
+	userUsecase    usecase.User
+	brokerProducer event.BrokerProducer
 }
 
 func NewRPC(logger *zap.Logger, userUsecase usecase.User, brokerProducer event.BrokerProducer) pb.UserServiceServer {
 	return &userRPC{
-		logger:                logger,
-		userUsecase:           userUsecase,
-		brokerProducer:        brokerProducer,
+		logger:         logger,
+		userUsecase:    userUsecase,
+		brokerProducer: brokerProducer,
 	}
 }
 
 func (s userRPC) Create(ctx context.Context, req *pb.User) (*pb.User, error) {
     ctx, span := otlp.Start(ctx, "Delivery", "Create")
     span.SetAttributes(
-      attribute.Key("CreatedId").String(req.Id),
+      attribute.Key("deliveryCreateId").String(req.Id),
     )
     defer span.End()
 	
 	createdUser, err := s.userUsecase.Create(ctx, &entity.User{
-		Id:             req.Id,
-		FullName:       req.FullName,
-		Email:          req.Email,
-		Password:       req.Password,
-		DateOfBirth:	req.DateOfBirth,
-		ProfileImg:     req.ProfileImg,
-		Card:           req.Card,
-		Gender:         req.Gender,
-		PhoneNumber:    req.PhoneNumber,
-		Role:           req.Role,
-		RefreshToken:   req.RefreshToken,
+		Id:           req.Id,
+		FullName:     req.FullName,
+		Email:        req.Email,
+		Password:     req.Password,
+		DateOfBirth:  req.DateOfBirth,
+		ProfileImg:   req.ProfileImg,
+		Card:         req.Card,
+		Gender:       req.Gender,
+		PhoneNumber:  req.PhoneNumber,
+		Role:         req.Role,
+		RefreshToken: req.RefreshToken,
 	})
 	if err != nil {
 		return nil, err
@@ -62,21 +62,20 @@ func (s userRPC) Create(ctx context.Context, req *pb.User) (*pb.User, error) {
 		PhoneNumber:    createdUser.PhoneNumber,
 		Role:           createdUser.Role,
 		RefreshToken:   createdUser.RefreshToken,
-		CreatedAt: 		createdUser.CreatedAt.Format("2006-01-02T15:04:05"),
     }, nil
 }
 
 func (s userRPC) Get(ctx context.Context, filter *pb.Filter) (*pb.GetUser, error) {
     ctx, span := otlp.Start(ctx, "Delivery", "Get")
     span.SetAttributes(
-      attribute.Key("GetById").String(filter.Filter["id"]),
+      attribute.Key("deliveryGetId").String(filter.Filter["id"]),
     )
     defer span.End()
 	
 	filterUser, err := s.userUsecase.Get(ctx, filter.Filter)
-	if err!= nil {
-        return nil, err
-    }
+	if err != nil {
+		return nil, err
+	}
 
 	resp := &pb.GetUser{
 		User: &pb.User{
@@ -92,6 +91,7 @@ func (s userRPC) Get(ctx context.Context, filter *pb.Filter) (*pb.GetUser, error
 			Role:			filterUser.Role,
 			RefreshToken:	filterUser.RefreshToken,
 			CreatedAt:		filterUser.CreatedAt.Format("2006-01-02T15:04:05Z"),
+			UpdatedAt:		filterUser.UpdatedAt.Format("2006-01-02T15:04:05Z"),
 		},
 	}
 
@@ -101,8 +101,8 @@ func (s userRPC) Get(ctx context.Context, filter *pb.Filter) (*pb.GetUser, error
 func (s userRPC) ListUsers(ctx context.Context, req *pb.ListUsersReq) (*pb.ListUsersRes, error) {
 	ctx, span := otlp.Start(ctx, "Delivery", "ListUsers")
     span.SetAttributes(
-      attribute.Key("Limit").String(fmt.Sprint(req.Limit)),
-      attribute.Key("Offset").String(fmt.Sprint(req.Offset)),
+      attribute.Key("deliveryListLimit").String(fmt.Sprint(req.Limit)),
+      attribute.Key("deliveryListOffset").String(fmt.Sprint(req.Offset)),
     )
     defer span.End()
 	
@@ -113,22 +113,22 @@ func (s userRPC) ListUsers(ctx context.Context, req *pb.ListUsersReq) (*pb.ListU
 	var users []*pb.User
 	for _, user := range listedUsers {
 		users = append(users, &pb.User{
-            Id:             user.Id,
-            FullName:       user.FullName,
-            Email:          user.Email,
-            Password:		user.Password,
-			DateOfBirth:    user.DateOfBirth,
-            ProfileImg:     user.ProfileImg,
-            Card:           user.Card,
-            Gender:         user.Gender,
-            PhoneNumber:    user.PhoneNumber,
-			Role:           user.Role,
-            RefreshToken:   user.RefreshToken,
-            CreatedAt:      user.CreatedAt.Format("2006-01-02T15:04:05Z"),
-            UpdatedAt:      user.UpdatedAt.Format("2006-01-02T15:04:05Z"),
-		},)
+			Id:           user.Id,
+			FullName:     user.FullName,
+			Email:        user.Email,
+			Password:     user.Password,
+			DateOfBirth:  user.DateOfBirth,
+			ProfileImg:   user.ProfileImg,
+			Card:         user.Card,
+			Gender:       user.Gender,
+			PhoneNumber:  user.PhoneNumber,
+			Role:         user.Role,
+			RefreshToken: user.RefreshToken,
+			CreatedAt:    user.CreatedAt.Format("2006-01-02T15:04:05Z"),
+			UpdatedAt:    user.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+		})
 	}
-    return &pb.ListUsersRes{
+	return &pb.ListUsersRes{
 		Users: users,
 	}, nil
 }
@@ -136,8 +136,8 @@ func (s userRPC) ListUsers(ctx context.Context, req *pb.ListUsersReq) (*pb.ListU
 func (s userRPC) ListDeletedUsers(ctx context.Context, req *pb.ListUsersReq) (*pb.ListUsersRes, error) {
 	ctx, span := otlp.Start(ctx, "Delivery", "ListDeletedUsers")
     span.SetAttributes(
-      attribute.Key("Limit").String(fmt.Sprint(req.Limit)),
-      attribute.Key("Offset").String(fmt.Sprint(req.Offset)),
+      attribute.Key("deliveryListDeletedLimit").String(fmt.Sprint(req.Limit)),
+      attribute.Key("deliveryListDeletedOffset").String(fmt.Sprint(req.Offset)),
     )
     defer span.End()
 	
@@ -148,21 +148,21 @@ func (s userRPC) ListDeletedUsers(ctx context.Context, req *pb.ListUsersReq) (*p
 	var users []*pb.User
 	for _, user := range gotAllUsers {
 		users = append(users, &pb.User{
-            Id:             user.Id,
-            FullName:       user.FullName,
-            Email:          user.Email,
-            Password:		user.Password,
-			DateOfBirth:    user.DateOfBirth,
-            ProfileImg:     user.ProfileImg,
-            Card:           user.Card,
-            Gender:         user.Gender,
-            PhoneNumber:    user.PhoneNumber,
-			Role:           user.Role,
-            RefreshToken:   user.RefreshToken,
-            CreatedAt:      user.CreatedAt.Format("2006-01-02T15:04:05Z"),
-            UpdatedAt:      user.UpdatedAt.Format("2006-01-02T15:04:05Z"),
-			DeletedAt: 		user.DeletedAt.Format("2006-01-02T15:04:05Z"),
-		},)
+			Id:           user.Id,
+			FullName:     user.FullName,
+			Email:        user.Email,
+			Password:     user.Password,
+			DateOfBirth:  user.DateOfBirth,
+			ProfileImg:   user.ProfileImg,
+			Card:         user.Card,
+			Gender:       user.Gender,
+			PhoneNumber:  user.PhoneNumber,
+			Role:         user.Role,
+			RefreshToken: user.RefreshToken,
+			CreatedAt:    user.CreatedAt.Format("2006-01-02T15:04:05Z"),
+			UpdatedAt:    user.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+			DeletedAt:    user.DeletedAt.Format("2006-01-02T15:04:05Z"),
+		})
 	}
 	return &pb.ListUsersRes{
 		Users: users,
@@ -172,22 +172,22 @@ func (s userRPC) ListDeletedUsers(ctx context.Context, req *pb.ListUsersReq) (*p
 func (s userRPC) Update(ctx context.Context, req *pb.User) (*pb.User, error) {
 	ctx, span := otlp.Start(ctx, "Delivery", "Update")
     span.SetAttributes(
-      attribute.Key("UpdateById").String(fmt.Sprint(req.Id)),
+      attribute.Key("deliveryUpdateId").String(fmt.Sprint(req.Id)),
     )
     defer span.End()
 	
 	updatedUser, err := s.userUsecase.Update(ctx, &entity.User{
-		Id:             req.Id,
-		FullName:       req.FullName,
-		Email:          req.Email,
-		Password:       req.Password,
-		DateOfBirth:	req.DateOfBirth,
-		ProfileImg:     req.ProfileImg,
-		Card:           req.Card,
-		Gender:         req.Gender,
-		PhoneNumber:    req.PhoneNumber,
-		Role:           req.Role,
-		RefreshToken:   req.RefreshToken,
+		Id:           req.Id,
+		FullName:     req.FullName,
+		Email:        req.Email,
+		Password:     req.Password,
+		DateOfBirth:  req.DateOfBirth,
+		ProfileImg:   req.ProfileImg,
+		Card:         req.Card,
+		Gender:       req.Gender,
+		PhoneNumber:  req.PhoneNumber,
+		Role:         req.Role,
+		RefreshToken: req.RefreshToken,
 	})
 	if err != nil {
 		return nil, err
@@ -204,14 +204,13 @@ func (s userRPC) Update(ctx context.Context, req *pb.User) (*pb.User, error) {
 		PhoneNumber:    updatedUser.PhoneNumber,
 		Role:           updatedUser.Role,
 		RefreshToken:   updatedUser.RefreshToken,
-		CreatedAt: 		updatedUser.CreatedAt.Format("2006-01-02T15:04:05"),
     }, nil
 }
 
 func (s userRPC) SoftDelete(ctx context.Context, req *pb.Id) (*pb.DelRes, error) {
 	ctx, span := otlp.Start(ctx, "Delivery", "Delete")
     span.SetAttributes(
-      attribute.Key("DeleteById").String(fmt.Sprint(req.Id)),
+      attribute.Key("deliveryDeleteId").String(fmt.Sprint(req.Id)),
     )
     defer span.End()
 	
@@ -219,23 +218,23 @@ func (s userRPC) SoftDelete(ctx context.Context, req *pb.Id) (*pb.DelRes, error)
 	if err != nil {
 		return nil, err
 	}
-    return &pb.DelRes{}, nil
+	return &pb.DelRes{}, nil
 }
 
 func (s userRPC) UserEstablishmentCreate(ctx context.Context, req *pb.UE) (*pb.UE, error) {
 	ctx, span := otlp.Start(ctx, "Delivery", "UECreate")
     span.SetAttributes(
-      attribute.Key("UECreatedUId").String(fmt.Sprint(req.UserId)),
-      attribute.Key("UECreatedEId").String(fmt.Sprint(req.EstablishmentId)),
+      attribute.Key("deliveryUECreateUId").String(fmt.Sprint(req.UserId)),
+      attribute.Key("deliveryUECreateEId").String(fmt.Sprint(req.EstablishmentId)),
     )
     defer span.End()
 	
 	user_id, establishment_id, err := s.userUsecase.UserEstablishmentCreate(ctx, req.UserId, req.EstablishmentId)
-    if err != nil {
-        return nil, err
-    }
-    return &pb.UE{
-		UserId: user_id,
+	if err != nil {
+		return nil, err
+	}
+	return &pb.UE{
+		UserId:          user_id,
 		EstablishmentId: establishment_id,
 	}, nil
 }
@@ -243,55 +242,55 @@ func (s userRPC) UserEstablishmentCreate(ctx context.Context, req *pb.UE) (*pb.U
 func (s userRPC) UserEstablishmentGet(ctx context.Context, req *pb.Filter) (*pb.UEwU, error) {
 	ctx, span := otlp.Start(ctx, "Delivery", "UEGet")
     span.SetAttributes(
-      attribute.Key("UEGetByUId").String(fmt.Sprint(req.Filter["user_id"])),
-      attribute.Key("UEGetByEId").String(fmt.Sprint(req.Filter["establishment_id"])),
+      attribute.Key("deliveryUEGetUId").String(fmt.Sprint(req.Filter["user_id"])),
+      attribute.Key("deliveryUEGetEId").String(fmt.Sprint(req.Filter["establishment_id"])),
     )
     defer span.End()
 	
 	user, establishment_id, err := s.userUsecase.UserEstablishmentGet(ctx, req.Filter)
-    if err != nil {
-        return nil, err
-    }
-    return &pb.UEwU{
-        User: &pb.User{
-			Id:             user.Id,
-            FullName:       user.FullName,
-            Email:          user.Email,
-            Password:		user.Password,
-			DateOfBirth:    user.DateOfBirth,
-            ProfileImg:     user.ProfileImg,
-            Card:           user.Card,
-            Gender:         user.Gender,
-            PhoneNumber:    user.PhoneNumber,
-			Role:           user.Role,
-            RefreshToken:   user.RefreshToken,
-            CreatedAt:      user.CreatedAt.Format("2006-01-02T15:04:05Z"),
-            UpdatedAt:      user.UpdatedAt.Format("2006-01-02T15:04:05Z"),
+	if err != nil {
+		return nil, err
+	}
+	return &pb.UEwU{
+		User: &pb.User{
+			Id:           user.Id,
+			FullName:     user.FullName,
+			Email:        user.Email,
+			Password:     user.Password,
+			DateOfBirth:  user.DateOfBirth,
+			ProfileImg:   user.ProfileImg,
+			Card:         user.Card,
+			Gender:       user.Gender,
+			PhoneNumber:  user.PhoneNumber,
+			Role:         user.Role,
+			RefreshToken: user.RefreshToken,
+			CreatedAt:    user.CreatedAt.Format("2006-01-02T15:04:05Z"),
+			UpdatedAt:    user.UpdatedAt.Format("2006-01-02T15:04:05Z"),
 		},
-        EstablishmentId: establishment_id,
-    }, nil
+		EstablishmentId: establishment_id,
+	}, nil
 }
 
 func (s userRPC) UserEstablishmentDelete(ctx context.Context, req *pb.Filter) (*pb.DelRes, error) {
 	ctx, span := otlp.Start(ctx, "Delivery", "UEDelete")
     span.SetAttributes(
-      attribute.Key("UEDeleteByUId").String(fmt.Sprint(req.Filter["user_id"])),
-      attribute.Key("UEDeleteByEId").String(fmt.Sprint(req.Filter["establishment_id"])),
+      attribute.Key("deliveryUEDeleteUId").String(fmt.Sprint(req.Filter["user_id"])),
+      attribute.Key("deliveryUEDeleteEId").String(fmt.Sprint(req.Filter["establishment_id"])),
     )
     defer span.End()
 	
 	err := s.userUsecase.UserEstablishmentDelete(ctx, req.Filter)
-    if err != nil {
-        return nil, err
-    }
-    return &pb.DelRes{}, nil
+	if err != nil {
+		return nil, err
+	}
+	return &pb.DelRes{}, nil
 }
 
 func (s userRPC) CheckUniquess(ctx context.Context, req *pb.FV) (*pb.Status, error) {
 	ctx, span := otlp.Start(ctx, "Delivery", "CheckUniquess")
     span.SetAttributes(
-      attribute.Key("Field").String(fmt.Sprint(req.Field)),
-      attribute.Key("Value").String(fmt.Sprint(req.Value)),
+      attribute.Key("deliveryCheckUniquessField").String(fmt.Sprint(req.Field)),
+      attribute.Key("deliveryCheckUniquessValue").String(fmt.Sprint(req.Value)),
     )
     defer span.End()
     
@@ -307,15 +306,15 @@ func (s userRPC) CheckUniquess(ctx context.Context, req *pb.FV) (*pb.Status, err
 func (s userRPC) Exists(ctx context.Context, req *pb.FV) (*pb.User, error) {
 	ctx, span := otlp.Start(ctx, "Delivery", "Exists")
 	span.SetAttributes(
-      attribute.Key("Field").String(fmt.Sprint(req.Field)),
-      attribute.Key("Value").String(fmt.Sprint(req.Value)),
+      attribute.Key("deliveryExistsField").String(fmt.Sprint(req.Field)),
+      attribute.Key("deliveryExistsValue").String(fmt.Sprint(req.Value)),
     )
 	defer span.End()
 
 	user, err := s.userUsecase.Exists(ctx, req.Field, req.Value)
-	if err!= nil {
-        return nil, err
-    }
+	if err != nil {
+		return nil, err
+	}
 	return &pb.User{
 		Id:             user.Id,
         FullName:       user.FullName,
@@ -329,5 +328,6 @@ func (s userRPC) Exists(ctx context.Context, req *pb.FV) (*pb.User, error) {
         Role:           user.Role,
         RefreshToken:   user.RefreshToken,
         CreatedAt:      user.CreatedAt.Format("2006-01-02T15:04:05Z"),
+        UpdatedAt:      user.UpdatedAt.Format("2006-01-02T15:04:05Z"),
     }, nil
 }
