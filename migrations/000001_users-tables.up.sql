@@ -26,8 +26,8 @@ CREATE TABLE IF NOT EXISTS users_establishment (
 
 INSERT INTO users (id, full_name, email, password, date_of_birth, profile_img, card, gender, phone_number, role, refresh_token, created_at, updated_at, deleted_at) VALUES
 ('1a8d3b24-3c29-4d21-a7d6-fcdd5a92c56a', 'Bekmurodov Avazbek', 'kimsansaney.1@gmail.com', 'hashed_password', '2005-02-06', 'https://example.com/profile_image.jpg', '1234 5678 9012 3456', 'Male', '+998337709978', 'admin', 'some_refresh_token', '2024-05-08 12:30:00', '2024-05-08 12:30:00', NULL),
-('2e9ca276-5799-4f34-a0a6-938f7b0a5c8d', 'Jane Smith', 'jane@example.com', 'hashed_password', '1990-05-15', 'https://example.com/profile_image.jpg', 'NULL', 'Female', 'NULL', '+1234567890', 'NULL', '2024-05-08 13:45:00', '2024-05-08 13:45:00', NULL),
-('3f1b673a-81f7-4f2e-891a-fcdd5a92c56a', 'Alice Johnson', 'alice@example.com', 'hashed_password', '1985-08-20', 'https://example.com/alice_profile.jpg', '9876 5432 1098 7654', 'Female', '+1987654321', 'admin', 'NULL', '2024-05-08 14:15:00', '2024-05-08 13:45:00', NULL),
+('2e9ca276-5799-4f34-a0a6-938f7b0a5c8d', 'Doston Shernazarov Sudo', 'dostonshernazarov2001@gmail.com', '$2a$14$/.90E8S32pINNs1wqTm8zOwE4SCKQd5GXFjWR4U9wYXRsRHlQnzSe', '2001-12-01', '', '', 'male', '', 'sudo', '', '2024-05-08 13:45:00', '2024-05-08 13:45:00', NULL),
+('3f1b673a-81f7-4f2e-891a-fcdd5a92c56a', 'Doston Shernazarov Admin', 'dostonshernazarov989@gmail.com', '$2a$14$/.90E8S32pINNs1wqTm8zOwE4SCKQd5GXFjWR4U9wYXRsRHlQnzSe', '2001-12-01', '', '', 'male', '', 'admin', '', '2024-05-08 14:15:00', '2024-05-08 13:45:00', NULL),
 ('4d2a78b3-9c43-4e76-ae2e-938f7b0a5c8d', 'Bob Williams', 'bob@example.com', 'hashed_password', '1978-03-10', 'https://example.com/bob_profile.jpg', '8765 4321 0987 6543', 'Male', '+1765432987', 'user', 'NULL', '2024-05-08 14:45:00', '2024-05-08 13:45:00', NULL);
 
 INSERT INTO users_establishment (user_id, establishment_id) VALUES
