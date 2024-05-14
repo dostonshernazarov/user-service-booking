@@ -220,7 +220,7 @@ func (p userRepo) ListUsers(ctx context.Context, limit, offset int64, field, val
 	}
 
 	queryCount := p.userSelectQueryPrefixCount()
-	query, args, err = queryCount.Where(p.db.Sq.Equal("deleted_at", nil)).ToSql()
+	query, args, err = queryCount.Where(p.db.Sq.Equal("deleted_at", nil)).Where(p.db.Sq.ILike(field, "%"+value+"%")).ToSql()
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to build SQL query for counting users: %v", err)
 	}
@@ -282,7 +282,7 @@ func (p userRepo) ListDeletedUsers(ctx context.Context, limit, offset int64, fie
 	}
 
 	queryCount := p.userSelectQueryPrefixCount()
-	query, args, err = queryCount.Where(p.db.Sq.NotEqual("deleted_at", nil)).ToSql()
+	query, args, err = queryCount.Where(p.db.Sq.NotEqual("deleted_at", nil)).Where(p.db.Sq.ILike(field, "%"+value+"%")).ToSql()
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to build SQL query for counting users: %v", err)
 	}
