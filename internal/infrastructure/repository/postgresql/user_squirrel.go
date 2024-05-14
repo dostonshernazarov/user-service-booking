@@ -134,6 +134,9 @@ func (p userRepo) Get(ctx context.Context, params map[string]string) (*entity.Us
 		if key == "email" {
 			queryBuilder = queryBuilder.Where(p.db.Sq.Equal(key, value))
 		}
+		if key == "refresh_token" {
+			queryBuilder = queryBuilder.Where(p.db.Sq.Equal(key, value))
+		}
 
     	queryBuilder = queryBuilder.Where(p.db.Sq.Equal("deleted_at", nil))
 	}
@@ -308,6 +311,7 @@ func (p userRepo) Update(ctx context.Context, user *entity.User) (*entity.User, 
 		"card":          user.Card,
 		"gender":        user.Gender,
 		"phone_number":  user.PhoneNumber,
+		"refresh_token": user.RefreshToken,
 	}
 	sqlStr, args, err := p.db.Sq.Builder.Update(p.userTableName).
 		SetMap(clauses).
