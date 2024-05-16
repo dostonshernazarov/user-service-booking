@@ -29,13 +29,7 @@ INSERT INTO users (id, full_name, email, password, date_of_birth, profile_img, c
 ('2e9ca276-5799-4f34-a0a6-938f7b0a5c8d', 'Doston Shernazarov Sudo', 'dostonshernazarov2001@gmail.com', '$2a$14$/.90E8S32pINNs1wqTm8zOwE4SCKQd5GXFjWR4U9wYXRsRHlQnzSe', '2001-12-01', '', '', 'male', '', 'sudo', '', '2024-05-08 13:45:00', '2024-05-08 13:45:00', NULL),
 ('3f1b673a-81f7-4f2e-891a-fcdd5a92c56a', 'Doston Shernazarov Admin', 'dostonshernazarov989@gmail.com', '$2a$14$/.90E8S32pINNs1wqTm8zOwE4SCKQd5GXFjWR4U9wYXRsRHlQnzSe', '2001-12-01', '', '', 'male', '', 'admin', '', '2024-05-08 14:15:00', '2024-05-08 13:45:00', NULL),
 ('4d2a78b3-9c43-4e76-ae2e-938f7b0a5c8d', 'Ayyubxon', 'yuldoshevv7@gmail.com', '$2a$14$v/u/Bk.rmWgrzqgAiLZJeO1iJEw.cCLwY7P2YR7jijt82jNCYEhpC', '1978-03-10', 'https://example.com/bob_profile.jpg', '8765 4321 0987 6543', 'Male', '+1765432987', 'sudo', '', '2024-05-08 14:45:00', '2024-05-08 13:45:00', NULL),
-('4d2a78b3-9c43-4e76-ae2e-938f7b0a5c8d', 'Xumoyunmirzo', '@uzbekcodewizard@gmail.com', '$2a$14$1QU6ylni3qY02d9VnNzi5eEUgi6MfPTMD.gMvlvSnLQHQ4vPIIKky', '1978-03-10', 'https://example.com/bob_profile.jpg', '8765 4321 0987 6543', 'Male', '+1765432987', 'sudo', '', '2024-05-08 14:45:00', '2024-05-08 13:45:00', NULL);
-
-INSERT INTO users_establishment (user_id, establishment_id) VALUES
-('1a8d3b24-3c29-4d21-a7d6-fcdd5a92c56a', 'e1a23456-7890-1234-5678-901234567890'),
-('2e9ca276-5799-4f34-a0a6-938f7b0a5c8d', 'e2b34567-8901-2345-6789-012345678901'),
-('3f1b673a-81f7-4f2e-891a-fcdd5a92c56a', 'e3c45678-9012-3456-7890-123456789012'),
-('4d2a78b3-9c43-4e76-ae2e-938f7b0a5c8d', 'e4d56789-0123-4567-8901-234567890123');
+('4d2a78b3-9c43-4e76-ae2e-938f7b0a5c7d', 'Xumoyunmirzo', '@uzbekcodewizard@gmail.com', '$2a$14$1QU6ylni3qY02d9VnNzi5eEUgi6MfPTMD.gMvlvSnLQHQ4vPIIKky', '1978-03-10', 'https://example.com/bob_profile.jpg', '8765 4321 0987 6543', 'Male', '+1765432987', 'sudo', '', '2024-05-08 14:45:00', '2024-05-08 13:45:00', NULL);
 
 
 CREATE TABLE "location_table"(
