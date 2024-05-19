@@ -31,7 +31,6 @@ INSERT INTO users (id, full_name, email, password, date_of_birth, profile_img, c
 ('4d2a78b3-9c43-4e76-ae2e-938f7b0a5c8d', 'Ayyubxon', 'yuldoshevv7@gmail.com', '$2a$14$v/u/Bk.rmWgrzqgAiLZJeO1iJEw.cCLwY7P2YR7jijt82jNCYEhpC', '1978-03-10', 'https://example.com/bob_profile.jpg', '8765 4321 0987 6543', 'Male', '+1765432987', 'sudo', '', '2024-05-08 14:45:00', '2024-05-08 13:45:00', NULL),
 ('4d2a78b3-9c43-4e76-ae2e-938f7b0a5c7d', 'Xumoyunmirzo', '@uzbekcodewizard@gmail.com', '$2a$14$1QU6ylni3qY02d9VnNzi5eEUgi6MfPTMD.gMvlvSnLQHQ4vPIIKky', '1978-03-10', 'https://example.com/bob_profile.jpg', '8765 4321 0987 6543', 'Male', '+1765432987', 'sudo', '', '2024-05-08 14:45:00', '2024-05-08 13:45:00', NULL);
 
-
 CREATE TABLE "location_table"(
     "location_id" UUID PRIMARY KEY NOT NULL,
     "establishment_id" UUID NOT NULL,
@@ -130,4 +129,49 @@ CREATE TABLE "hotel_table"(
     "created_at" TIMESTAMP(0) DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(0) DEFAULT CURRENT_TIMESTAMP,
     "deleted_at" TIMESTAMP(0)
+);
+
+CREATE TABLE IF NOT EXISTS users_hotels_booking
+(
+    id UUID NOT NULL PRIMARY KEY,
+    user_id UUID NOT NULL,
+    room_id UUID NOT NULL,
+    will_arrive TIMESTAMP,
+    will_leave TIMESTAMP,
+    number_of_people INTEGER,
+    is_canceled BOOLEAN,
+    reason TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS users_restaurants_booking
+(
+    id UUID NOT NULL PRIMARY KEY,
+    user_id UUID NOT NULL,
+    restaurant_id UUID NOT NULL,
+    will_arrive TIMESTAMP,
+    will_leave TIMESTAMP DEFAULT NULL,
+    number_of_people INTEGER,
+    is_canceled BOOLEAN,
+    reason TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS users_attractions_booking
+(
+    id UUID NOT NULL PRIMARY KEY,
+    user_id UUID NOT NULL,
+    attraction_id UUID NOT NULL,
+    will_arrive TIMESTAMP,
+    will_leave TIMESTAMP DEFAULT NULL,
+    number_of_people INTEGER,
+    is_canceled BOOLEAN,
+    reason TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP
 );
