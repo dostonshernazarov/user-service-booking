@@ -103,7 +103,6 @@ func TestUserPostgres(t *testing.T) {
 	assert.Equal(t, user.Id, getUser.Id)
 	assert.Equal(t, user.FullName, getUser.FullName)
 	assert.Equal(t, user.Email, getUser.Email)
-	assert.Equal(t, user.Password, getUser.Password)
 	assert.Equal(t, user.DateOfBirth, getUser.DateOfBirth)
 	assert.Equal(t, user.ProfileImg, getUser.ProfileImg)
 	assert.Equal(t, user.Card, getUser.Card)

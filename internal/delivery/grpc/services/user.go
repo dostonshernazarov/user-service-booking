@@ -82,7 +82,7 @@ func (s userRPC) Get(ctx context.Context, filter *pb.Filter) (*pb.GetUser, error
 			Id: 			filterUser.Id,
 			FullName:		filterUser.FullName,
 			Email:			filterUser.Email,
-			Password:		filterUser.Password,
+			Password: filterUser.Password,
 			DateOfBirth:	filterUser.DateOfBirth,
 			ProfileImg:		filterUser.ProfileImg,
 			Card:			filterUser.Card,
@@ -110,13 +110,12 @@ func (s userRPC) ListUsers(ctx context.Context, req *pb.ListUsersReq) (*pb.ListU
 	if err != nil {
 		return nil, err
 	}
-	var users []*pb.User
+	var users []*pb.UserList
 	for _, user := range listedUsers {
-		users = append(users, &pb.User{
+		users = append(users, &pb.UserList{
 			Id:           user.Id,
 			FullName:     user.FullName,
 			Email:        user.Email,
-			Password:     user.Password,
 			DateOfBirth:  user.DateOfBirth,
 			ProfileImg:   user.ProfileImg,
 			Card:         user.Card,
@@ -146,13 +145,12 @@ func (s userRPC) ListDeletedUsers(ctx context.Context, req *pb.ListUsersReq) (*p
 	if err != nil {
 		return nil, err
 	}
-	var users []*pb.User
+	var users []*pb.UserList
 	for _, user := range gotAllUsers {
-		users = append(users, &pb.User{
+		users = append(users, &pb.UserList{
 			Id:           user.Id,
 			FullName:     user.FullName,
 			Email:        user.Email,
-			Password:     user.Password,
 			DateOfBirth:  user.DateOfBirth,
 			ProfileImg:   user.ProfileImg,
 			Card:         user.Card,
